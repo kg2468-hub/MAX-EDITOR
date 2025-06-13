@@ -1,0 +1,1324 @@
+/* Resetando o estilo padrão da página e aplicando tema escuro */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #121212; /* Fundo escuro */
+  color: white;              /* Texto branco */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;             /* Ocupa toda a altura da tela */
+}
+
+/* Container geral da tela inicial */
+#tela-inicial {
+  text-align: center;
+}
+
+/* ================================ */
+/*         ESTILO DO TÍTULO         */
+/* ================================ */
+/* Container geral centralizado */
+.logo-max-editor {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 40px;
+  font-family: 'Segoe UI', sans-serif;
+  user-select: none;
+}
+
+/* Ícone da logo (pincel) com animação */
+.icone-logo {
+  width: 64px;
+  height: 64px;
+  background-image: url("B16F9EF0-7FBF-4459-AD61-8762E97BD37A.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  animation: liquido 6s infinite ease-in-out;
+}
+
+/* Texto principal (MAX) */
+.texto-max {
+  font-size: 150px;
+  font-weight: 900;
+  letter-spacing: 1px;
+
+  /* 🎨 Gradiente animado com efeito líquido */
+  background: linear-gradient(90deg, #00ff88, #00cfff, #00ff88);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  /* 🌊 Efeitos combinados: líquido + brilho sutil */
+  animation: liquido 5s infinite linear, brilho-pulsante 4s infinite ease-in-out;
+
+  /* 🔧 Reduz espaço vertical entre linhas e ajusta margem */
+  line-height: 1;
+  margin-bottom: -10px;
+  user-select: none;
+}
+
+
+/* Texto secundário (EDITOR) */
+.texto-editor {
+  font-size: 22px;
+  color: #e0e0e0;
+  letter-spacing: 15px;
+  font-weight: 600;
+  
+  /* 👇 Reduz ainda mais o espaço entre os textos */
+  margin-top: 0;
+  user-select: none;
+}
+
+.texto-max,
+.texto-editor {
+  display: block; /* ⬅️ Faz com que fiquem um abaixo do outro */
+}
+
+
+
+/* ================================ */
+/*     ANIMAÇÃO DO GRADIENTE       */
+/* ================================ */
+@keyframes gradientFlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes gradienteAnimado {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+/* 🌊 Animação líquida */
+@keyframes liquido {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+  /* ✨ Brilho suave e sutil */
+@keyframes brilho-pulsante {
+  0%, 100% {
+    text-shadow: 0 0 2px #00ffcc, 0 0 4px #00ffee;
+    filter: brightness(1);
+  }
+  50% {
+    text-shadow: 0 0 6px #00ffcc, 0 0 12px #00ffee;
+    filter: brightness(1.1);
+  }
+}
+
+
+/* 🔆 Adiciona a animação ao MAX sem remover as outras */
+.texto-max {
+  animation: liquido 5s infinite linear, brilho-pulsante 3s infinite ease-in-out;
+}
+
+  
+  
+}
+
+
+
+
+
+
+/* Estilo dos botões principais */
+.botoes button {
+  display: block;
+  width: 200px;
+  margin: 10px auto;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  background-color: #4caf50;
+  color: white;
+  cursor: pointer;
+  transition: background 0.3s; /* Suaviza mudança ao passar o mouse */
+}
+
+/* Efeito hover ao passar o mouse nos botões */
+.botoes button:hover {
+  background-color: #43a047; /* Verde um pouco mais escuro */
+}
+
+/* Mensagem central de desenvolvimento */
+.notificacao {
+  color: #4caf50;
+  font-weight: bold;
+  margin-top: 20px;
+  font-size: 7px;
+}
+
+/* ================================ */
+/*        RODAPÉ FIXO INICIAL      */
+/* ================================ */
+footer {
+  position: fixed;       /* fixa na tela */
+  bottom: 0;             /* gruda na parte inferior */
+  left: 0;
+  width: 100%;           /* ocupa toda a largura da tela */
+  background-color: #121212;
+  color: #bbb;
+  font-size: 14px;
+  text-align: center;
+  padding: 10px;
+  z-index: 100;
+  border-top: 1px solid #333;
+  user-select: none;
+}
+
+/* Link do Instagram alinhado horizontalmente */
+.insta-link {
+  text-decoration: none;
+  color: #bbb;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Ícone do Instagram com cor adaptada ao tema escuro */
+.insta-icon {
+  width: 16px;
+  height: 16px;
+  filter: invert(80%);
+}
+
+/* Link do Instagram com alinhamento horizontal */
+.insta-link {
+  text-decoration: none;
+  color: #bbb;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px; /* Espaço entre ícone e @ */
+}
+
+/* Ícone do Instagram */
+.insta-icon {
+  width: 12px;
+  height: 12px;
+  filter: invert(80%); /* Deixa o ícone branco/cinza no tema escuro */
+}
+
+
+/* ============================================= */
+/*        ESTILO DO MODAL CRIAR PROJETO          */
+/* ============================================= */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7); /* fundo escuro transparente */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
+
+/* Esconde o MODAL CRIAR PROJETO inicialmente */
+.oculto {
+  display: none;
+}
+
+/* Caixa central do MODAL CRIAR PROJETO */
+.conteudo-modal {
+  background: #1e1e1e;
+  padding: 30px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.6);
+  text-align: left;
+  position: relative;
+  user-select: none;
+}
+
+/* Título do MODAL CRIAR PROJETO */
+.conteudo-modal h2 {
+  color: #4caf50;
+  margin-bottom: 20px;
+  user-select: none;
+}
+
+/* Rótulos dos campos */
+.conteudo-modal label {
+  display: block;
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+/* Campos de entrada */
+.conteudo-modal input {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  border-radius: 8px;
+  border: none;
+  background: #2c2c2c;
+  color: white;
+}
+
+/* Botão de confirmar criação */
+.conteudo-modal button {
+  margin-top: 20px;
+  width: 100%;
+  padding: 12px;
+  background-color: #136b38;
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.conteudo-modal button:hover {
+  background-color: #4caf50;
+}
+/* ============================ */
+/*        BOTÃO DE FECHAR      */
+/* ============================ */
+.fechar {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  font-size: 22px;
+  color: #aaa;
+  cursor: pointer;
+  font-weight: bold;
+  transition: color 0.3s;
+  user-select: none;
+}
+
+
+
+
+
+
+/* Quando passa o mouse, muda a cor */
+.fechar:hover {
+  color: #ffffff;
+}
+
+/* Garante que a caixa do modal tenha posição relativa */
+.conteudo-modal {
+  position: relative; /* Importante para o botão ficar dentro */
+  
+}
+
+/* =============================== */
+/*      TELA DE EDIÇÃO GERAL      */
+/* =============================== */
+#tela-editor {
+   display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  background-color: #1e1e1e;
+  overflow: hidden;
+}
+
+
+/* ======================================= */
+/*  WRAPPER QUE SEGURA CANVAS + ZOOM/PAN   */
+/*  Agora preenche 100 % da largura        */
+/*  e toda a altura visível (–70 px).      */
+/* ======================================= */
+#canvas-wrapper {
+   position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 255, 0, 0.1); /* 💚 Apenas para debug visual temporário */
+  overflow: hidden;
+}
+
+
+/* =============================== */
+/*        CANVAS DO USUÁRIO       */
+/* =============================== */
+#canvas-container {
+  background-color: #fff;
+  background-image: linear-gradient(#ccc 1px, transparent 1px),
+                    linear-gradient(to right, #ccc 1px, transparent 1px);
+  background-size: 30px 30px;
+  box-shadow: 0 0 0 2px #aaa;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* ✅ Centraliza perfeitamente */
+  box-sizing: content-box;
+  overflow: hidden;
+
+   transform-origin: center center;
+  transition: transform 0.05s ease-out; /* Suaviza zoom/movimento */
+  will-change: transform;
+}
+
+
+/* =============================== */
+/*    OBJETOS NO CANVAS (CAMADAS) */
+/* =============================== */
+.objeto-edicao {
+  position: absolute;
+  user-select: none;
+  touch-action: none;
+  display: inline-block;
+  vertical-align: top;
+}
+
+.objeto-edicao img {
+  user-drag: none;
+  -webkit-user-drag: none; /* Safari e derivados */
+  pointer-events: auto;
+}
+
+
+
+
+/* ======================================== */
+/*   CONTORNO – VERSÃO MAX BONITÃO          */
+/* ======================================== */
+#contorno-selecao {
+  position: absolute;
+  pointer-events: none;
+  /* 🔸Linha: sólida + levemente brilhante */
+  border: 2px solid #00e676;
+  border-radius: 6px;               /* cantos suaves */
+  /* Efeito glow sutil */
+  box-shadow: 0 0 6px rgba(0, 230, 150, 0.6);
+  transition: opacity .15s ease, box-shadow .15s ease;
+  opacity: 0.95;                    /* leve transparência */
+  box-sizing: border-box;           /* ✓ borda conta na medida */
+   z-index: 9999; /* 👆 Fica por cima de quase tudo */
+}
+
+/* Alças customizadas — estilo “nó” circular */
+#contorno-selecao .handle-tl,
+#contorno-selecao .handle-tr,
+#contorno-selecao .handle-bl,
+#contorno-selecao .handle-br {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #00e676;
+  border: 2px solid #121212;  /* bordinha interna escura p/ contraste */
+  position: absolute;
+  box-shadow: 0 0 4px rgba(0, 230, 150, 0.8);
+}
+
+/* Posições das alças */
+.handle-tl { top:-9px;  left:-9px;  cursor:nwse-resize; }
+.handle-tr { top:-9px;  right:-9px; cursor:nesw-resize; }
+.handle-bl { bottom:-9px;left:-9px; cursor:nesw-resize; }
+.handle-br { bottom:-9px;right:-9px;cursor:nwse-resize; }
+
+/* (Opcional) Alça de rotação — pino azul estiloso */
+#contorno-selecao .handle-rot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #2196f3;
+  border: 2px solid #121212;
+  position: absolute;
+  top: -32px;
+  left: 50%;
+  transform: translateX(-50%);
+  cursor: grab;
+  box-shadow: 0 0 4px rgba(33,150,243,0.8);
+}
+
+/* Esconde tudo quando não estiver em uso */
+#contorno-selecao.oculto {
+  opacity: 0;
+}
+
+
+
+
+
+
+
+/* 🔒 Remove barras visuais no canva (como no mobile) */
+#canvas-container {
+  scrollbar-width: none;            /* Firefox */
+}
+#canvas-container::-webkit-scrollbar { /* Chrome, Safari */
+  display: none;
+}
+
+/* Barra inferior com botões de ferramenta */
+#barra-ferramentas {
+  display: flex;
+  justify-content: space-around;
+  background-color:  #1a1a1a;
+  padding: 12px;
+  min-height: 60px;
+}
+
+/* Botões da barra de ferramentas */
+.botao-ferramenta {
+  background-color: #333;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  cursor: pointer;
+}
+/* Oculta qualquer elemento com essa classe */
+/* Classe para esconder completamente elementos */
+.oculto {
+  display: none !important;
+}
+
+
+
+
+/* ================================ */
+/*       BARRA SUPERIOR FIXA        */
+/*         (tela de edição)         */
+/* ================================ */
+
+#barra-superior {
+  height: 50px;
+  background-color: #1a1a1a;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 10px;
+  border-bottom: 1px solid #333;
+  position: relative;
+  z-index: 2;
+  min-height: 50px;
+  user-select: none;
+}
+
+/* Botão do topo (ex: Menu) */
+.botao-topo {
+  background-color: #136b38;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.3s;
+  user-select: none;
+}
+
+.botao-topo:hover {
+  background-color: #4caf50;
+}
+
+/* ================================ */
+/*         MENU LATERAL            */
+/*         TELA DE EDIÇÃO           */
+/* ================================ */
+#menu-lateral {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 280px;
+  height: 100vh;
+  background-color: #1e1e1e;
+  border-right: 1px solid #333;
+  z-index: 999;
+  transition: transform 0.3s ease;
+  transform: translateX(-100%); /* Escondido por padrão */
+  user-select: none;
+}
+
+/* Quando visível (remoção da classe oculto) */
+#menu-lateral.ativo {
+  transform: translateX(0);
+}
+
+/* Conteúdo interno do menu */
+.menu-conteudo {
+  padding: 20px;
+  color: white;
+  font-size: 16px;
+}
+
+/* Botão de fechar (X) no topo */
+.fechar-menu {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  font-size: 22px;
+  cursor: pointer;
+  color: #ccc;
+  transition: color 0.3s;
+  user-select: none;
+}
+
+.fechar-menu:hover {
+  color: white;
+}
+
+/* ================================ */
+/*     BOTÕES DO MENU LATERAL      */
+/* ================================ */
+.botao-menu-lateral {
+  background-color: #333;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  margin-top: 20px;
+  border-radius: 8px;
+  width: 100%;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.3s;
+  user-select: none;
+}
+
+.botao-menu-lateral:hover {
+  background-color: #4caf50;
+}
+
+/* ================================ */
+/*      ESTILO GLOBAL DO CANVAS    */
+/* ================================ */
+canvas {
+  display: block; /* Remove espaços extras (como se fosse inline) */
+  max-width: 100%; /* Impede que o canvas ultrapasse a largura do container */
+  max-height: 100%; /* Impede que o canvas ultrapasse a altura visível */
+  margin: 0 auto; /* Centraliza horizontalmente dentro do container */
+  
+  /* Sombra sutil para destacar o canvas do fundo */
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+
+  /* ============================ */
+  /*      FUNDO QUADRICULADO     */
+  /* ============================ */
+  /* Padrão quadriculado claro, usado em editores para indicar transparência */
+  background-image: 
+    linear-gradient(45deg, #eee 25%, transparent 25%),
+    linear-gradient(-45deg, #eee 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #eee 75%),
+    linear-gradient(-45deg, transparent 75%, #eee 75%);
+
+  background-size: 20px 20px; /* Tamanho dos quadrados */
+  background-position: 
+    0 0,     /* primeira camada */
+    0 10px,  /* segunda camada */
+    10px -10px, /* terceira camada */
+    -10px 0px;  /* quarta camada */
+
+  /* Resultado: fundo quadriculado branco elegante e leve */
+}
+
+/* ================================ */
+/*  BLOQUEIA SCROLL E ZOOM GLOBAL  */
+/* ================================ */
+
+/* Impede rolagem da página */
+html, body {
+  overflow: hidden;
+  height: 100%;
+  width: 100%;
+  touch-action: none; /* desativa zoom com dois dedos no mobile */
+}
+
+/* Impede zoom com ctrl + scroll */
+body {
+  overscroll-behavior: none;
+}
+
+/* ================================ */
+/*     ABA LATERAL DE CAMADAS      */
+/*        COM GLASSMORPHISM        */
+/* ================================ */
+.painel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 260px;
+  height: 100vh;
+
+  /* Fundo semitransparente com efeito vidro */
+  background-color: rgba(30, 30, 30, 0.6); /* transparência maior */
+  backdrop-filter: blur(8px);              /* efeito de desfoque */
+  -webkit-backdrop-filter: blur(8px);      /* suporte para Safari */
+
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 1000;
+  padding: 16px;
+  box-shadow: -2px 0 5px rgba(0,0,0,0.2);
+  overflow-y: auto;
+  transition: transform 0.3s ease;
+  transform: translateX(100%);
+  user-select: none;
+}
+
+/* Quando visível */
+.painel.ativo {
+  transform: translateX(0);
+}
+
+/* Botão "×" de fechar */
+.fechar-painel {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  font-size: 22px;
+  color: #ccc;
+  cursor: pointer;
+  transition: color 0.2s;
+  user-select: none;
+}
+
+.fechar-painel:hover {
+  color: white;
+}
+
+/* Título do painel */
+.painel h3 {
+  color: white;
+  margin-bottom: 10px;
+  user-select: none;
+}
+
+/* Botão flutuante de camadas */
+#abrir-camadas {
+	background: #4CAF50;
+	margin-left: auto; /* joga o botão para o lado direito da barra */
+	border: none;
+	padding: 8px;
+	border-radius: 8px;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: background 0.2s;
+
+}
+
+
+
+
+
+
+/* ================================ */
+/*            CAMADAS               */
+/* ================================ */
+
+/*  LISTA DE CAMADAS */
+#lista-camadas {
+  max-height: calc(100vh - 80px); /* altura máxima visível da aba */
+  overflow-y: auto;               /* ativa rolagem interna */
+  padding-right: 6px;             /* espaço para scrollbar */
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+#aba-camadas {
+  width: 260px;
+  height: 100vh;
+  background: rgba(20, 20, 20, 0.85);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  z-index: 10;
+}
+
+/* Área que contém as camadas e tem rolagem */
+#lista-camadas {
+  flex: 1;
+  overflow-y: auto;
+  max-height: calc(100vh - 140px); /* Ajuste conforme altura do topo + rodapé */
+  padding: 12px;
+}
+
+/* Remove rolagem geral da página */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  overflow: hidden; /* 🔒 Bloqueia qualquer rolagem */
+}
+
+/* Oculta barras de rolagem forçadamente (padrão crossbrowser) */
+body::-webkit-scrollbar {
+  display: none;
+}
+
+/* 🔒 Remove barras visuais das camadas (como no mobile) */
+#lista-camadas {
+  scrollbar-width: none;            /* Firefox */
+}
+#lista-camadas::-webkit-scrollbar { /* Chrome, Safari */
+  display: none;
+}
+
+
+/* Estilo base de cada camada na lista */
+.item-camada {
+  display: flex; /* Coloca todos os elementos em linha */
+  align-items: center; /* Alinha verticalmente no centro */
+  justify-content: space-between; /* Espaça os itens igualmente */
+  background-color: #1e1e1e; /* Fundo escuro para combinar com o tema */
+  padding: 8px; /* Espaçamento interno */
+  margin-bottom: 6px; /* Espaço entre uma camada e outra */
+  border-radius: 6px; /* Arredonda os cantos */
+  gap: 8px; /* Espaço entre os itens internos */
+  color: white; /* Cor do texto */
+  font-size: 14px; /* Tamanho da fonte padrão 
+ */
+  position: relative;/* Garante que os itens de camada tenham posição relativa para posicionar o tipo no topo */
+
+   padding-top: 12px; /* Espaço para o tipo flutuante */
+}
+
+
+/* Container de informações da camada (tipo + nome) */
+.info-camada {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  padding: 0 6px;
+  overflow: hidden;
+}
+
+
+/* 🟨 Nome da camada com limite de 2 linhas */
+.nome-camada {
+  font-size: 11px;
+  padding: 0 6px;
+  line-height: 1.2;
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-height: 2.4em; /* 2 linhas */
+  text-align: center;
+  flex: 1;
+  color: white;
+  margin: 0 6px;
+  white-space: normal;      /* 🔄 Permite quebra de linha */
+  word-break: break-word;   /* 🔄 Quebra palavras longas */
+  text-align: left;
+  line-height: 1.1;
+}
+
+
+/* ✅ Tipo da camada: flutuando no topo, centralizado, sem atrapalhar os elementos internos */
+.tipo-camada-topo {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  font-weight: bold;
+  background-color: #4caf50;
+  color: black;
+  padding: 2px 6px;
+  border-radius: 4px;
+  z-index: 10;
+  pointer-events: none;
+  opacity: 0.9;
+}
+
+
+/* 🟦 Miniatura da camada com tamanho fixo */
+/* Miniatura padrão */
+.miniatura-camada {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  background-color: #333;
+  background-size: cover;
+  background-position: center;
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+/* Miniatura para camada de texto */
+.miniatura-camada.miniatura-texto {
+  background-color: #222;
+}
+/* Texto dentro da miniatura */
+.preview-texto {
+  font-size: 10px;
+  color: white;
+  text-align: center;
+  padding: 2px;
+  word-break: break-word;
+  white-space: normal;
+  line-height: 1.2;
+  max-width: 100%;
+  max-height: 100%;
+  overflow: hidden;
+}
+
+
+/* Miniatura com forma geométrica (quadrado verde de exemplo) */
+.miniatura-forma {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.forma-exemplo {
+  width: 22px;
+  height: 22px;
+  background-color: #4CAF50; /* 💚 Verde padrão */
+  border-radius: 0px;         /* 🔲 Arredondamento leve (ajustável) */
+}
+
+
+
+.camada-item {
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  margin-bottom: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.camada-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.camada-item. {
+  background: rgba(0, 255, 128, 0.15); /* 💚 verde clarinho */
+  border: 1px solid #00ff80;
+}
+
+
+/* ============================= */
+/*      SELEÇÃO DA CAMADA        */
+/* ============================= */
+.item-camada.ativa {
+  background-color: rgba(0, 255, 128, 0.08);
+  outline: 2px solid #00ff80;
+  border-radius: 8px;
+}
+
+
+
+/* ============================= */
+/* 🎯 MODAL DE TEXTO (Isolado) */
+/* ============================= */
+.modal-texto {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5); /* Fundo escurecido */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.conteudo-modal-texto {
+  background-color: #1e1e1e;
+  padding: 24px;
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.6);
+  max-width: 90%;
+  width: 400px;
+  text-align: center;
+}
+
+#input-texto {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  font-size: 16px;
+  border-radius: 6px;
+  border: none;
+  background: #2a2a2a;
+  color: white;
+}
+
+.botoes-modal-texto {
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.botoes-modal-texto button {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  background-color: #4caf50;
+  color: white;
+  transition: background-color 0.3s ease;
+}
+
+.botoes-modal-texto button:hover {
+  background-color: #45a045;
+}
+
+/* Ocultar qualquer modal */
+.oculto {
+  display: none;
+}
+
+
+/* =============================== */
+/* 🎯 MINIATURA DA CAMADA DE IMAGEM */
+/* =============================== */
+.miniatura-camada {
+  width: 36px;                  /* 📏 Tamanho fixo da miniatura */
+  height: 36px;
+  background-color: #2c2c2c;    /* 🎨 Cor de fundo padrão (caso não tenha imagem) */
+  border: 1px solid #444;       /* 🖌️ Borda leve para destacar a miniatura */
+  border-radius: 4px;           /* 🟦 Cantos levemente arredondados */
+  background-size: cover;       /* 📸 Faz a imagem preencher toda a miniatura */
+  background-position: center; /* 📍 Centraliza a imagem dentro da área */
+  background-repeat: no-repeat;/* ❌ Evita repetição da imagem */
+}
+
+
+/* ❌ Impede que ícones e textos das camadas sejam selecionados como texto */
+.item-camada,
+.item-camada * {
+  user-select: none;
+}
+
+
+/* Aplica a todos os ícones SVG usados nos botões de camadas e ícones de controle */
+.icone-camada svg,
+.icone svg {
+  width: 20px;             /* 📏 Define a largura do ícone para 20 pixels */
+  height: 20px;            /* 📐 Define a altura do ícone para 20 pixels */
+  pointer-events: none;    /* 🚫 Impede que o usuário clique direto no SVG (o clique será no <span>) */
+}
+
+
+/* ================================
+📋 MENU FLUTUANTE DA CAMADA (⋮)
+================================ */
+.menu-opcoes {
+  position: absolute;
+  z-index: 9999;                         /* 🔝 Fica acima de tudo */
+  background-color: #1e1e1e;             /* 🎨 Fundo escuro padrão */
+  border: 1px solid #4caf50;             /* 🟩 Borda verde elegante */
+  border-radius: 6px;                    /* 🔘 Cantos um pouco menores */
+  padding: 4px 0;                        /* 📦 Padding vertical mais compacto */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4); /* 🌑 Sombra leve */
+  min-width: 140px;
+  max-width: 200px;     /* ✅ Limita o tamanho máximo */
+  width: fit-content;   /* ✅ Garante que não ultrapasse o necessário */
+  overflow-wrap: break-word; /* ✅ Quebra o texto dentro */
+}
+
+.menu-opcoes .opcao-menu {
+  width: 100%;
+  background: none;
+  border: none;
+  color: white;
+  padding: 6px 10px;                     /* 📦 Menor espaçamento interno */
+  text-align: left;
+  cursor: pointer;
+  font-size: 13px;                       /* 🔤 Fonte mais enxuta */
+  line-height: 1.3;
+}
+
+.menu-opcoes .opcao-menu:hover {
+  background-color: #2f2f2f;             /* 🌘 Realce no hover */
+}
+
+
+
+
+/* ======================================== */
+/* 🔙 Botão flutuante para remover seleção */
+/* ======================================== */
+.botao-desselecionar {
+  background: rgba(50, 100, 50, 0.2);      /* vidro verde suave */
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #c5faf3;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 12px;                    /* formato achatado */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;                     /* grudado no canto esquerdo */
+  left: 8px;
+    bottom: 56px; /* ⬆️ sobe o botão para cima da barra */
+  height: 32px;
+  z-index: 25;
+  transition: background 0.3s ease;
+}
+
+.botao-desselecionar:hover {
+  background: rgba(80, 160, 80, 0.3);
+  cursor: pointer;
+}
+
+
+/* 🔒 CLASSE PARA ESCONDER ELEMENTOS */
+.oculto {
+  display: none;
+}
+
+
+
+
+
+
+
+
+
+
+/*///////////////CAMADAS//////////////////*/
+
+
+
+
+
+
+
+
+
+
+/* ============================== */
+/*                                */
+/*     BOTÕES DE FERRAMENTAS      */
+/*                                */
+/* ============================== */
+
+
+/* Container geral da barra de ferramentas */
+#barra-ferramentas {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: fixed;
+  bottom: 0;
+  width: 100%; 
+ background: #2c2c2c;
+  color: #fff;
+  border-radius: 10px;
+  border: none;
+  padding: 8px 6px;
+  z-index: 20;
+  cursor: pointer;
+  color: #fff;
+}
+
+.icone-botao {
+  width: 24px;
+  height: 24px;
+  margin-bottom: 4px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.texto-botao {
+  font-size: 12px;
+  text-align: center;
+}
+
+.botao-ferramenta {
+  display: flex;
+  flex-direction: column;      /* Ícone em cima, texto embaixo */
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 60px;
+  flex-shrink: 0;
+  background: #2c2c2c;
+  color: #fff;
+  border: none;
+  padding: 10px 8px;
+  border-radius: 8px;
+  font-size: 14px;
+  white-space: nowrap;
+  transition: background 0.3s;
+  text-align: center; /* Segurança para alinhar textos internos */
+  user-select: none;
+}
+
+.botao-ferramenta:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Botões de edição (usam o mesmo estilo visual dos botões principais) */
+.botao-edicao {
+   display: flex;
+  flex-direction: column;      /* Ícone em cima, texto embaixo */
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 60px;
+  flex-shrink: 0;
+  background: #2c2c2c;
+  color: #fff;
+  border: none;
+  padding: 10px 8px;
+  border-radius: 8px;
+  font-size: 14px;
+  white-space: nowrap;
+  transition: background 0.3s;
+  text-align: center; /* Segurança para alinhar textos internos */
+  user-select: none;
+}
+
+.botao-edicao :hover{
+  background: rgba(255, 255, 255, 0.1);
+}
+
+
+/* Botão fixo "Camadas" */
+.botao-camadas {
+  background: #136b38;
+  color: #fff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: bold;
+  margin-left: 12px;
+  margin-right: 8px;
+  white-space: nowrap;
+  user-select: none;
+}
+.botao-camadas:hover{
+   background: #4caf50;
+}
+
+
+/* Área dos botões que rola horizontalmente (scroll invisível) */
+#ferramentas-scroll {
+  display: flex;              /* 🔧 Deixa os botões lado a lado */
+  gap: 12px;                  /* Espaçamento entre os botões */
+  overflow-x: auto;           /* Ativa scroll horizontal */
+  overflow-y: hidden;         /* Impede scroll vertical */
+  padding-left: 12px;
+  flex-grow: 1;
+  white-space: nowrap;        /* Impede quebra de linha */
+  scrollbar-width: none;      /* Oculta a barra no Firefox */
+  -webkit-overflow-scrolling: touch; /* Suaviza scroll em mobile */
+}
+
+
+#ferramentas-scroll:active {
+  cursor: grabbing;                /* Quando estiver clicando/arrastando */
+}
+
+/* Oculta scrollbar no Chrome, Safari e Edge */
+#ferramentas-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.grupo-botoes {
+  display: flex;              /* 🔧 organiza os botões na horizontal */
+  gap: 12px;                  /* espaçamento entre eles */
+}
+
+
+
+
+
+
+
+/* Evita zoom automático ao focar em inputs no mobile */
+input,
+textarea,
+select,
+button {
+  font-size: 16px !important; /* Valor mínimo para evitar zoom */
+  touch-action: manipulation; /* Evita zoom duplo no clique */
+}
+
+
+
+
+/* ============================== */
+/* ⚠️ Estilo da notificação de erro */
+/* ============================== */
+/* 🔴 Caixa de notificação de erro (inicialmente oculta) */
+/* Notificação animada */
+#notificacao-erro {
+  position: fixed;
+  left: 50%;
+  bottom: -100px; /* começa fora da tela */
+  transform: translateX(-50%);
+  background-color: #ff5555;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 15px;
+  opacity: 0;
+  transition: all 0.4s ease;
+  z-index: 9999;
+}
+
+#notificacao-erro.ativa {
+  bottom: 30px;
+  opacity: 1;
+}
+
+
+/* ============================== */
+/* ⚠️ Estilo da notificação de aviso */
+/* ============================== */
+.notificacao-aviso {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 255, 128, 0.12); /* 💚 vidro verde claro */
+  border: 1px solid #00ff80;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px); /* Safari */
+  color: white;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 9999;
+  display: none;
+}
+
+.notificacao-aviso.ativa {
+  display: block;
+  animation: aparecer 0.3s ease-out;
+}
+
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
