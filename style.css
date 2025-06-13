@@ -341,7 +341,7 @@ footer {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 255, 0, 0.1); /* 💚 Apenas para debug visual temporário */
+  /*background: rgba(0, 255, 0, 0.1);  💚 Apenas para debug visual temporário */
   overflow: hidden;
 }
 
