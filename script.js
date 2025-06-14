@@ -101,29 +101,24 @@ painelCamadas.classList.add("oculto");
 painelCamadas.classList.remove("ativo");
 
 
-  // 🎨 Cria o canvas com as dimensões definidas
-  const canvas = document.createElement("canvas");
-  canvas.width = largura;
-  canvas.height = altura;
-  canvas.style.border = "1px solid #4caf50";
-  canvas.style.backgroundColor = "transparent";
+// 🧼 Limpa qualquer conteúdo anterior da área de edição
+canvasContainer.innerHTML = "";
 
-  // Aplica fundo quadriculado branco (estilo editores reais)
-  canvas.style.backgroundImage = `
-    linear-gradient(45deg, #eee 25%, transparent 25%),
-    linear-gradient(-45deg, #eee 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, #eee 75%),
-    linear-gradient(-45deg, transparent 75%, #eee 75%)
-  `;
-  canvas.style.backgroundSize = "20px 20px";
-  canvas.style.backgroundPosition = "0 0, 0 10px, 10px -10px, -10px 0px";
+// 📐 Define dinamicamente o tamanho da área de edição (div canvas-container)
+canvasContainer.style.width = largura + "px";
+canvasContainer.style.height = altura + "px";
 
-  // 🧼 Limpa apenas o conteúdo anterior (sem destruir tudo!)
-	const antigoCanvas = canvasContainer.querySelector("canvas");
-	if (antigoCanvas) antigoCanvas.remove();
-
-	// Adiciona o novo canvas
-	canvasContainer.appendChild(canvas);
+// 🧩 Aplica o fundo quadriculado visual
+canvasContainer.style.backgroundColor = "#ffffff";
+canvasContainer.style.backgroundImage = `
+  linear-gradient(45deg, #eee 25%, transparent 25%),
+  linear-gradient(-45deg, #eee 25%, transparent 25%),
+  linear-gradient(45deg, transparent 75%, #eee 75%),
+  linear-gradient(-45deg, transparent 75%, #eee 75%)
+`;
+canvasContainer.style.backgroundSize = "20px 20px";
+canvasContainer.style.backgroundPosition = "0 0, 0 10px, 10px -10px, -10px 0px";
+canvasContainer.style.border = "1px solid #4caf50";
 
 	// 🔁 Recria o contorno de seleção
 	const contorno = document.createElement("div");
@@ -147,7 +142,9 @@ document.querySelectorAll(".item-camada").forEach(camada => camada.remove());
 // 🧼 Volta para o Container principal dos botoes de ferramentas
 mostrarContainer("principal");
 
-centralizarCanvasComZoom();
+setTimeout(() => {
+  centralizarCanvasComZoom();
+}, 100); // espera 100ms para o DOM renderizar o canvas corretamente
 
 
 });
@@ -164,11 +161,15 @@ centralizarCanvasComZoom();
 // - Proteção contra sumiço do canvas
 // =======================================================================
 
+
+
+
 function iniciarSistemaDeZoom() {
   const wrapper = document.getElementById("canvas-wrapper");
+  const transformado = document.getElementById("canvas-transformado");
   const canvas = document.getElementById("canvas-container");
 
-  if (!wrapper || !canvas) return;
+  if (!wrapper || !canvas || !transformado) return;
 
   let escalaZoom = 1;
   let posicaoX = 0;
@@ -181,18 +182,17 @@ function iniciarSistemaDeZoom() {
   let distanciaInicial = null;
   let escalaInicial = 1;
 
-  const ZOOM_MIN = 0.2;
-  const ZOOM_MAX = 5;
+  const ZOOM_MIN = 0.1;
+  const ZOOM_MAX = 10;
 
-  // 🎯 Aplica o zoom e posição ao wrapper
   function atualizarTransformacao() {
-    wrapper.style.transform = `translate(${posicaoX}px, ${posicaoY}px) scale(${escalaZoom})`;
-    wrapper.style.transformOrigin = "center center";
-    wrapper.style.transition = "transform 0.08s ease-out";
+    transformado.style.transform = `translate(calc(-50% + ${posicaoX}px), calc(-50% + ${posicaoY}px)) scale(${escalaZoom})`;
+    transformado.style.transformOrigin = "center center";
+    transformado.style.transition = "transform 0.08s ease-out";
+
     verificarSeCanvasSumiu();
   }
 
-  // 🧠 Centraliza o canvas automaticamente com base no tamanho da tela
   function centralizarCanvasComZoom() {
     const larguraWrapper = wrapper.clientWidth;
     const alturaWrapper = wrapper.clientHeight;
@@ -200,11 +200,8 @@ function iniciarSistemaDeZoom() {
     const larguraCanvas = canvas.offsetWidth;
     const alturaCanvas = canvas.offsetHeight;
 
-    const escalaX = larguraWrapper / larguraCanvas;
-    const escalaY = alturaWrapper / alturaCanvas;
-
-    const margem = 0.9; // 90% da tela visível
-    const escalaIdeal = Math.min(escalaX, escalaY) * margem;
+    const margem = 0.9;
+    const escalaIdeal = Math.min(larguraWrapper / larguraCanvas, alturaWrapper / alturaCanvas) * margem;
 
     escalaZoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, escalaIdeal));
     posicaoX = 0;
@@ -213,7 +210,6 @@ function iniciarSistemaDeZoom() {
     atualizarTransformacao();
   }
 
-  // 🔄 Recentraliza forçadamente com zoom 100%
   function recentralizarCanvas() {
     escalaZoom = 1;
     posicaoX = 0;
@@ -221,168 +217,151 @@ function iniciarSistemaDeZoom() {
     atualizarTransformacao();
   }
 
-  // 🧠 Detecta se o canvas "sumiu da tela"
+  let ultimaCentralizacao = 0; // ⏱️ Armazena o último momento em que centralizou
+
 function verificarSeCanvasSumiu() {
-  // 🛡️ Garante que o canvas existe e está visível
-  if (!canvas || canvas.offsetParent === null) return;
+  // 🛡️ Cancela se o canvas não existe ou ainda não foi renderizado corretamente
+  if (!canvas || canvas.offsetWidth === 0 || canvas.offsetHeight === 0) return;
 
-  const margem = 60; // margem de segurança
+  const agora = Date.now();
+  const intervaloMinimo = 500; // 500ms entre centralizações
 
-  const limite = wrapper.getBoundingClientRect();
+  // ⛔ Evita centralizar várias vezes seguidas
+  if (agora - ultimaCentralizacao < intervaloMinimo) return;
+
+  const margem = 60;
+  const wrapperBox = wrapper.getBoundingClientRect();
   const canvasBox = canvas.getBoundingClientRect();
 
   const foraHorizontal =
-    canvasBox.right < limite.left + margem ||
-    canvasBox.left > limite.right - margem;
+    canvasBox.right < wrapperBox.left + margem ||
+    canvasBox.left > wrapperBox.right - margem;
 
   const foraVertical =
-    canvasBox.bottom < limite.top + margem ||
-    canvasBox.top > limite.bottom - margem;
+    canvasBox.bottom < wrapperBox.top + margem ||
+    canvasBox.top > wrapperBox.bottom - margem;
 
   if (foraHorizontal || foraVertical) {
     console.warn("⚠️ Canvas fora da área visível. Recentralizando...");
+    ultimaCentralizacao = agora;
     centralizarCanvasComZoom();
   }
 }
 
-
-
-  // 📤 Disponibiliza funções globalmente (caso queira usar em outros arquivos)
+  // Expondo globalmente se precisar em outro lugar
   window.centralizarCanvasComZoom = centralizarCanvasComZoom;
   window.recentralizarCanvas = recentralizarCanvas;
 
-  // ============================
-  // 💻 ZOOM COM SCROLL DO MOUSE
-  // ============================
+  // Zoom com scroll do mouse
   wrapper.addEventListener("wheel", (e) => {
-  if (e.ctrlKey || e.metaKey) return; // ignora pinch do touchpad
-
-  e.preventDefault();
-
-  const delta = e.deltaY > 0 ? -0.1 : 0.1;
-  escalaZoom += delta;
-  escalaZoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, escalaZoom));
-
-  atualizarTransformacao();
-}, { passive: false });
-
-  // =============================
-  // 🖱️ MOVIMENTO COM O MOUSE (PC)
-  // =============================
-wrapper.addEventListener("mousedown", (e) => {
-  if (escalaZoom <= 1) return; // Trava se zoom for 100%
-
-  // 🛡️ Impede arrastar a tela se clicou sobre um objeto (exceto se for fora dele)
-  if (e.target.closest(".objeto-edicao")) return;
-
-  isArrastando = true;
-  ultimoX = e.clientX;
-  ultimoY = e.clientY;
-  wrapper.style.transition = "none";
-});
-
-document.addEventListener("mousemove", (e) => {
-  if (!isArrastando || escalaZoom <= 1) return;
-
-  const dx = e.clientX - ultimoX;
-  const dy = e.clientY - ultimoY;
-  posicaoX += dx;
-  posicaoY += dy;
-  ultimoX = e.clientX;
-  ultimoY = e.clientY;
-
-  // ✅ Limitação fluida baseada na visibilidade do canvas
-  const limite = wrapper.getBoundingClientRect();
-  const canvasBox = canvas.getBoundingClientRect();
-
-  const margemX = limite.width * 0.2;
-  const margemY = limite.height * 0.2;
-
-  if (
-    canvasBox.left > limite.right - margemX ||
-    canvasBox.right < limite.left + margemX
-  ) {
-    posicaoX -= dx;
-  }
-
-  if (
-    canvasBox.top > limite.bottom - margemY ||
-    canvasBox.bottom < limite.top + margemY
-  ) {
-    posicaoY -= dy;
-  }
-
-  atualizarTransformacao();
-});
-
-document.addEventListener("mouseup", () => {
-  isArrastando = false;
-});
-
-
-
-
-  // ==========================
-  // 🤏 ZOOM E MOVIMENTO TOUCH
-  // ==========================
-  wrapper.addEventListener("touchstart", (e) => {
-  if (e.touches.length === 2) {
-    const dx = e.touches[0].clientX - e.touches[1].clientX;
-    const dy = e.touches[0].clientY - e.touches[1].clientY;
-    distanciaInicial = Math.sqrt(dx * dx + dy * dy);
-    escalaInicial = escalaZoom;
-  } else if (e.touches.length === 1 && escalaZoom > 1) {
-    // 🛡️ Impede mover a tela se tocou em um objeto
-    const tocouObjeto = e.target.closest(".objeto-edicao");
-    if (tocouObjeto) return;
-
-    ultimoX = e.touches[0].clientX;
-    ultimoY = e.touches[0].clientY;
-  }
-}, { passive: false });
-
-
- wrapper.addEventListener("touchmove", (e) => {
-  if (e.touches.length === 2 && distanciaInicial) {
-    const dx = e.touches[0].clientX - e.touches[1].clientX;
-    const dy = e.touches[0].clientY - e.touches[1].clientY;
-    const novaDistancia = Math.sqrt(dx * dx + dy * dy);
-    escalaZoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, escalaInicial * (novaDistancia / distanciaInicial)));
-
-    if (escalaZoom <= 1) {
-      posicaoX = 0;
-      posicaoY = 0;
-    }
-
-    atualizarTransformacao();
+    if (e.ctrlKey || e.metaKey) return;
     e.preventDefault();
-  } else if (e.touches.length === 1 && escalaZoom > 1) {
-    const tocouObjeto = e.target.closest(".objeto-edicao");
-    if (tocouObjeto) return; // Impede mover se arrastou objeto
 
-    const dx = e.touches[0].clientX - ultimoX;
-    const dy = e.touches[0].clientY - ultimoY;
-    posicaoX += dx;
-    posicaoY += dy;
-    ultimoX = e.touches[0].clientX;
-    ultimoY = e.touches[0].clientY;
+    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+    escalaZoom += delta;
+    escalaZoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, escalaZoom));
     atualizarTransformacao();
-    e.preventDefault();
-  }
-}, { passive: false });
+  }, { passive: false });
 
+  // Movimento com mouse
+  wrapper.addEventListener("mousedown", (e) => {
+    if (escalaZoom <= 1) return;
+    if (e.target.closest(".objeto-edicao")) return;
 
-  wrapper.addEventListener("touchend", () => {
-    distanciaInicial = null;
+    isArrastando = true;
+    ultimoX = e.clientX;
+    ultimoY = e.clientY;
+    transformado.style.transition = "none";
   });
 
-  // ✅ Inicia centralizado com zoom inteligente
+  document.addEventListener("mousemove", (e) => {
+    if (!isArrastando || escalaZoom <= 1) return;
+
+    const dx = e.clientX - ultimoX;
+    const dy = e.clientY - ultimoY;
+    posicaoX += dx;
+    posicaoY += dy;
+    ultimoX = e.clientX;
+    ultimoY = e.clientY;
+
+    atualizarTransformacao();
+  });
+
+  document.addEventListener("mouseup", () => {
+    isArrastando = false;
+  });
+
+
+
+  // ==========================
+// 🤏 ZOOM + PAN COM DOIS DEDOS (TOUCH)
+// ==========================
+
+
+// 🧠 Ao iniciar o toque
+wrapper.addEventListener("touchstart", (e) => {
+  if (e.touches.length === 2) {
+    // 👉 Dois dedos: inicia zoom + pan
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    distanciaInicial = Math.hypot(dx, dy);
+
+    escalaInicial = escalaZoom;
+
+    ultimoX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+    ultimoY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+
+  } else if (e.touches.length === 1) {
+    // 👆 Um dedo: NÃO faz pan! Apenas ignora o wrapper
+    // (a interação com objetos ocorre em outro lugar)
+  }
+}, { passive: false });
+
+
+// 🧭 Durante o gesto (movimento)
+wrapper.addEventListener("touchmove", (e) => {
+  if (e.touches.length === 2 && distanciaInicial !== null) {
+    const [t1, t2] = e.touches;
+
+    // 🔍 Calcula nova distância entre os dois dedos
+    const dx = t1.clientX - t2.clientX;
+    const dy = t1.clientY - t2.clientY;
+    const novaDistancia = Math.hypot(dx, dy);
+
+    // 🎯 Novo ponto médio entre os dois dedos
+    const novoMeio = {
+      x: (t1.clientX + t2.clientX) / 2,
+      y: (t1.clientY + t2.clientY) / 2
+    };
+
+    // ⬆️ Aplica zoom proporcional à variação da distância
+    const fatorZoom = novaDistancia / distanciaInicial;
+    escalaZoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, escalaInicial * fatorZoom));
+
+    // ↔️ Aplica pan com base na mudança do ponto médio
+    const dxMeio = novoMeio.x - ultimoX;
+    const dyMeio = novoMeio.y - ultimoY;
+    posicaoX += dxMeio;
+    posicaoY += dyMeio;
+
+    // 💾 Atualiza última posição média
+    ultimoX = novoMeio.x;
+    ultimoY = novoMeio.y;
+
+    atualizarTransformacao();
+    e.preventDefault();
+  }
+  }, { passive: false });
+
+
+// 🧼 Ao soltar os dedos, reseta variáveis
+wrapper.addEventListener("touchend", () => {
+  distanciaInicial = null;
+});
+
+  // Inicia centralizado
   centralizarCanvasComZoom();
 }
-
-
-
-
 
 
 
@@ -1294,7 +1273,6 @@ scrollArea.addEventListener('mousemove', (e) => {
   
   
 });
-
 
 
 
