@@ -339,12 +339,24 @@ footer {
    position: absolute;
   top: 0;
   left: 0;
+  inset: 0;
   width: 100vw;
   height: 100vh;
-  /*background: rgba(0, 255, 0, 0.1);  💚 Apenas para debug visual temporário */
+ /* background: rgba(0, 255, 0, 0.1);  💚 Apenas para debug visual temporário */
   overflow: hidden;
+  touch-action: none;
 }
 
+
+#canvas-transformado {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(1);
+  transform-origin: center center;
+  transition: transform 0.08s ease-out;
+  will-change: transform;
+}
 
 /* =============================== */
 /*        CANVAS DO USUÁRIO       */
@@ -365,6 +377,8 @@ footer {
    transform-origin: center center;
   transition: transform 0.05s ease-out; /* Suaviza zoom/movimento */
   will-change: transform;
+  
+
 }
 
 
