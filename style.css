@@ -317,150 +317,152 @@ footer {
   
 }
 
-/* =============================== */
-/*      TELA DE EDIÇÃO GERAL      */
-/* =============================== */
+
+/* ======================================================================= */
+/* TELA DE EDIÇÃO GERAL                                                    */
+/* ======================================================================= */
 #tela-editor {
-   display: flex;
-  flex-direction: column;
-  height: 100vh;
-  width: 100vw;
-  background-color: #1e1e1e;
-  overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100vw;
+    background-color: #1e1e1e;
+    overflow: hidden;
+    position: relative; /* Para posicionar elementos filhos com 'absolute' */
+    z-index: 1; /* Nível base para a tela de edição */
 }
 
 
-/* ======================================= */
-/*  WRAPPER QUE SEGURA CANVAS + ZOOM/PAN   */
-/*  Agora preenche 100 % da largura        */
-/*  e toda a altura visível (–70 px).      */
-/* ======================================= */
+/* ======================================================================= */
+/* WRAPPER E ELEMENTOS DE TRANSFORMAÇÃO DO CANVAS                          */
+/* Gerenciam o zoom e pan da área de edição.                               */
+/* ======================================================================= */
 #canvas-wrapper {
-   position: absolute;
-  top: 0;
-  left: 0;
-  inset: 0;
-  width: 100vw;
-  height: 100vh;
- /* background: rgba(0, 255, 0, 0.1);  💚 Apenas para debug visual temporário */
-  overflow: hidden;
-  touch-action: none;
-  z-index: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    inset: 0; /* shorthand for top, right, bottom, left 0 */
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    touch-action: none; /* Importante para o touch funcionar sem rolagem/zoom nativo */
+    z-index: 1; /* Base para o wrapper */
 }
-
 
 #canvas-transformado {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) scale(1);
-  transform-origin: center center;
-  transition: transform 0.08s ease-out;
-  will-change: transform;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(1);
+    transform-origin: center center;
+    transition: transform 0.08s ease-out;
+    will-change: transform;
+    z-index: 2; /* Acima do wrapper */
 }
 
-/* =============================== */
-/*        CANVAS DO USUÁRIO       */
-/* =============================== */
+/* O CANVAS REAL COM TAMANHO DEFINIDO PELO USUÁRIO */
 #canvas-container {
-  background-color: #fff;
-  background-image: linear-gradient(#ccc 1px, transparent 1px),
-                    linear-gradient(to right, #ccc 1px, transparent 1px);
-  background-size: 30px 30px;
-  box-shadow: 0 0 0 2px #aaa;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%); /* ✅ Centraliza perfeitamente */
-  box-sizing: content-box;
-  overflow: hidden;
-
-   transform-origin: center center;
-  transition: transform 0.05s ease-out; /* Suaviza zoom/movimento */
-  will-change: transform;
-  
-
+    background-color: #fff;
+    background-image: linear-gradient(#ccc 1px, transparent 1px),
+                      linear-gradient(to right, #ccc 1px, transparent 1px);
+    background-size: 30px 30px;
+    box-shadow: 0 0 0 2px #aaa;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    box-sizing: content-box; /* A borda e padding não aumentam o tamanho total */
+    overflow: hidden;
+    transform-origin: center center;
+    transition: transform 0.05s ease-out;
+    will-change: transform;
+    z-index: 3; /* Acima de canvas-transformado, mas abaixo dos objetos */
+    scrollbar-width: none; /* Firefox */
+}
+#canvas-container::-webkit-scrollbar { /* Chrome, Safari */
+    display: none;
 }
 
 
-/* =============================== */
-/*    OBJETOS NO CANVAS (CAMADAS) */
-/* =============================== */
+/* ======================================================================= */
+/* OBJETOS NO CANVAS (CAMADAS VISUAIS)                                     */
+/* Elementos que representam texto, imagens, formas no editor.             */
+/* ======================================================================= */
 .objeto-edicao {
-  position: absolute;
-  user-select: none;
-  touch-action: none;
-  display: inline-block;
-  vertical-align: top;
-  z-index: 10;
+    position: absolute; /* Essencial para left/top funcionarem */
+    user-select: none;
+    touch-action: none; /* Permite arrastar sem conflito com scroll nativo */
+    display: inline-block;
+    vertical-align: top;
+    z-index: 10; /* Acima do canvas-container */
+    /* Adicionar para depuração temporária para ver o tamanho do objeto */
+    /* border: 1px solid red; */
 }
 
 .objeto-edicao img {
-  user-drag: none;
-  -webkit-user-drag: none; /* Safari e derivados */
-  pointer-events: auto;
+    user-drag: none; /* Impede arrastar a imagem nativamente */
+    -webkit-user-drag: none;
+    pointer-events: auto; /* Garante que a imagem receba eventos, apesar do pai */
 }
 
 
-
-
-/* ======================================== */
-/*   CONTORNO – VERSÃO MAX BONITÃO          */
-/* ======================================== */
+/* ======================================================================= */
+/* CONTORNO DE SELEÇÃO E ALÇAS (HANDLES)                                   */
+/* O quadrado de seleção e os pontos de redimensionamento/rotação.         */
+/* ======================================================================= */
 #contorno-selecao {
-  position: absolute;
-  
-  /* 🔸Linha: sólida + levemente brilhante */
-  border: 2px solid #00e676;
-  border-radius: 6px;               /* cantos suaves */
-  /* Efeito glow sutil */
-  box-shadow: 0 0 6px rgba(0, 230, 150, 0.6);
-  transition: opacity .15s ease, box-shadow .15s ease;
-  opacity: 0.95;                    /* leve transparência */
-  box-sizing: border-box;           /* ✓ borda conta na medida */
-   z-index: 9999; /* 👆 Fica por cima de quase tudo */
+    position: absolute;
+    /* pointer-events: none; REMOVIDO! As alças terão pointer-events: auto */
+    border: 2px solid #00e676; /* Linha: sólida + levemente brilhante */
+    border-radius: 6px;
+    box-shadow: 0 0 6px rgba(0, 230, 150, 0.6); /* Efeito glow sutil */
+    transition: opacity .15s ease, box-shadow .15s ease;
+    opacity: 0.95;
+    box-sizing: border-box; /* Borda e padding não aumentam o tamanho total */
+    z-index: 20; /* Fica por cima dos objetos e do canvas */
+    pointer-events: none; /* Contorno em si não é clicável, só as alças */
 }
 
 /* Alças customizadas — estilo “nó” circular */
 #contorno-selecao .handle-tl,
 #contorno-selecao .handle-tr,
 #contorno-selecao .handle-bl,
-#contorno-selecao .handle-br {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: #00e676;
-  border: 2px solid #121212;  /* bordinha interna escura p/ contraste */
-  position: absolute;
-  box-shadow: 0 0 4px rgba(0, 230, 150, 0.8);
-}
-
-/* Posições das alças */
-.handle-tl { top:-9px;  left:-9px;  cursor:nwse-resize; }
-.handle-tr { top:-9px;  right:-9px; cursor:nesw-resize; }
-.handle-bl { bottom:-9px;left:-9px; cursor:nesw-resize; }
-.handle-br { bottom:-9px;right:-9px;cursor:nwse-resize; }
-
-/* (Opcional) Alça de rotação — pino azul estiloso */
+#contorno-selecao .handle-br,
 #contorno-selecao .handle-rot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: #2196f3;
-  border: 2px solid #121212;
-  position: absolute;
-  top: -32px;
-  left: 50%;
-  transform: translateX(-50%);
-  cursor: grab;
-  box-shadow: 0 0 4px rgba(33,150,243,0.8);
+    width: 14px; /* Tamanho visual da alça */
+    height: 14px;
+    border-radius: 50%;
+    background: #00e676;
+    border: 2px solid #121212; /* Bordinha interna escura p/ contraste */
+    position: absolute;
+    box-shadow: 0 0 4px rgba(0, 230, 150, 0.8);
+    cursor: grab; /* Cursor padrão para indicar arrasto */
+    pointer-events: all; /* Essencial: Garante que as alças RECEBAM eventos de clique */
+    padding: 8px; /* Aumenta a área clicável da alça sem mudar o tamanho visual */
+    box-sizing: content-box; /* Garante que o padding não afete width/height */
 }
 
-/* Esconde tudo quando não estiver em uso */
+/* Posições das alças (offset do centro da alça em relação ao contorno) */
+.handle-tl { top: -9px; left: -9px; cursor: nwse-resize; }
+.handle-tr { top: -9px; right: -9px; cursor: nesw-resize; }
+.handle-bl { bottom: -9px; left: -9px; cursor: nesw-resize; }
+.handle-br { bottom: -9px; right: -9px; cursor: nwse-resize; }
+
+/* Alça de rotação — pino azul estiloso */
+#contorno-selecao .handle-rot {
+    background: #2196f3; /* Cor azul para rotação */
+    box-shadow: 0 0 4px rgba(33,150,243,0.8);
+    top: -32px; /* Posiciona acima do contorno */
+    left: 50%;
+    transform: translateX(-50%); /* Centraliza horizontalmente */
+    cursor: grab; /* Cursor de arrasto */
+}
+
+/* Esconde o contorno quando não estiver em uso */
 #contorno-selecao.oculto {
-  opacity: 0;
+    opacity: 0;
+    pointer-events: none; /* Desativa eventos quando oculto */
 }
-
 
 
 
@@ -1222,7 +1224,29 @@ body::-webkit-scrollbar {
 }
 
 
+/* Estilo para a camada que está sendo arrastada */
+.item-camada.arrastando {
+    opacity: 0.6; /* Deixa um pouco transparente */
+    border: 1px dashed #00ff80; /* Borda tracejada para feedback */
+}
 
+/* Estilo para a camada sobre a qual se está arrastando (alvo do drop) */
+.item-camada.drag-over {
+    /* Estas classes serão removidas pelo JS após o drop */
+    /* São úteis para indicar visualmente que um item pode receber o drop */
+}
+
+/* Estilo para a linha demarcadora (indicador de posição de drop) */
+.linha-demarcadora {
+    background: #00ff80; /* Linha verde viva */
+    height: 2px;
+    position: absolute;
+    z-index: 1000; /* Acima dos itens de camada */
+    width: calc(100% - 16px); /* Para ajustar ao padding da lista */
+    left: 8px; /* Alinha com o padding da lista */
+    transition: top 0.1s ease; /* Transição suave ao mudar de posição */
+    pointer-events: none; /* Essencial: não deve capturar eventos de mouse/touch */
+}
 
 
 
