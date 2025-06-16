@@ -2,7 +2,28 @@ document.addEventListener("DOMContentLoaded", () => {
   
   
 
- 
+  // ================================================
+// ❌ FUNÇÃO PARA REMOVER A SELEÇÃO DA CAMADA ATIVA
+// E VOLTAR A MOSTRAR O CONTAINER PRINCIPAL
+// ================================================
+function limparSelecaoDeCamadas() {
+  // 🔁 Remove destaque de todas as camadas na aba lateral
+  document.querySelectorAll(".item-camada").forEach(c => c.classList.remove("ativa"));
+
+  // ❌ Remove ID salvo da camada selecionada
+  MAXEditor.camadaSelecionada = null;
+
+  // 🎯 Volta a exibir o container de botões principal (texto, imagem, forma...)
+  mostrarContainer("principal");
+  
+  ObjetoInteracaoManager.desativar(); // <-- ADICIONE ESTA LINHA AQUI
+
+  // 🔒 Esconde o botão de "voltar"
+  document.getElementById("btn-desselecionar").classList.add("oculto");
+  
+  // Oculta contorno visual
+  removerContornoEdicao();
+}
  
   
 
@@ -181,13 +202,13 @@ setTimeout(() => {
 function iniciarSistemaDeZoom() {
     const wrapper = document.getElementById("canvas-wrapper");
     const transformado = document.getElementById("canvas-transformado");
-    const canvas = document.getElementById("canvas-container");
+    const canvas = document.getElementById("canvas-container"); // Já é 'canvasContainer'
 
     if (!wrapper || !canvas || !transformado) return;
 
     // Variáveis de controle LOCAL para a função iniciarSistemaDeZoom
     // Elas controlam o estado de arrasto e últimas posições do mouse/touch para o PAN do CANVAS.
-    let isArrastando = false; 
+    let isArrastandoCanvas = false; 
     let ultimoXCanvas = 0; 
     let ultimoYCanvas = 0; 
 
@@ -198,8 +219,8 @@ function iniciarSistemaDeZoom() {
     const ZOOM_MIN = 0.1;
     const ZOOM_MAX = 10;
 
-    // Função que aplica a transformação visual (translate e scale) ao elemento 'canvas-transformado'
-    // Agora usa as propriedades de MAXEditor
+    // Aplica a transformação visual (translate e scale) ao elemento 'canvas-transformado'
+    // Usa as propriedades de MAXEditor (MAXEditor.panX, MAXEditor.panY, MAXEditor.zoom)
     function atualizarTransformacao() {
         transformado.style.transform = `translate(calc(-50% + ${MAXEditor.panX}px), calc(-50% + ${MAXEditor.panY}px)) scale(${MAXEditor.zoom})`;
         transformado.style.transformOrigin = "center center";
@@ -233,8 +254,7 @@ function iniciarSistemaDeZoom() {
         atualizarTransformacao();
     }
 
-    // Variável para controlar o tempo da última centralização automática
-    let ultimaCentralizacao = 0;
+    let ultimaCentralizacao = 0; // Controla o tempo da última centralização automática
 
     // Verifica se o canvas está muito fora da área visível e o recentraliza automaticamente
     function verificarSeCanvasSumiu() {
@@ -281,39 +301,75 @@ function iniciarSistemaDeZoom() {
         MAXEditor.zoom += delta; // Ajusta o zoom do MAXEditor
         MAXEditor.zoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, MAXEditor.zoom)); // Limita o zoom entre min e max
         atualizarTransformacao();
-    }, { passive: false }); // 'passive: false' é necessário para permitir e.preventDefault()
+    }, { passive: false });
+
+    // =======================================================================
+    // 🖱️ SELEÇÃO DE OBJETOS NO CANVAS VIA CLIQUE (DENTRO DE iniciarSistemaDeZoom)
+    // Este listener AGORA TEM PRIORIDADE sobre o arrasto do canvas.
+    // =======================================================================
+    canvas.addEventListener("mousedown", (e) => { // 'canvas' é 'canvasContainer'
+        const clickedObject = e.target.closest(".objeto-edicao");
+        
+        // Se clicou em um objeto
+        if (clickedObject) {
+            const objectId = clickedObject.dataset.id;
+            const correspondingLayer = document.querySelector(`.item-camada[data-id="${objectId}"]`);
+            
+            // Se a camada correspondente já está selecionada E o objeto não está bloqueado,
+            // não precisamos fazer nada, apenas garantir que o mousedown não suba
+            if (correspondingLayer && correspondingLayer.classList.contains("ativa") && correspondingLayer.dataset.bloqueado !== "true") {
+                // e.stopPropagation(); // O ObjetoInteracaoManager.onPointerDown já faz isso
+                return; 
+            }
+
+            // Se o objeto clicado não é o atualmente selecionado ou está bloqueado ou não era selecionado
+            if (correspondingLayer) {
+                // Simula um clique na camada correspondente para ativar a lógica de seleção.
+                // Isso irá: remover seleção anterior, adicionar 'ativa', mudar painel, ativar manager, etc.
+                correspondingLayer.click(); 
+            }
+        } else {
+            // Se clicou em uma área vazia do canvas (NÃO em um objeto)
+            // E existe uma camada atualmente selecionada, então desselecione.
+            if (MAXEditor.camadaSelecionada) {
+                limparSelecaoDeCamadas();
+                mostrarNotificacaoAviso("Seleção de objeto removida.");
+            }
+        }
+    });
+
 
     // Início do arrasto do canvas com o mouse (mousedown)
+    // Este listener só é acionado SE o listener do 'canvas' (acima) NÃO interceptar o evento.
     wrapper.addEventListener("mousedown", (e) => {
         const contorno = document.getElementById("contorno-selecao");
         
         // Verifica 1: Há uma camada selecionada E o clique foi dentro da "margem de segurança" expandida do contorno?
+        // Se sim, NÃO inicie o arrasto do canvas.
         let isWithinSafeMargin = false;
         if (MAXEditor.camadaSelecionada && contorno && !contorno.classList.contains("oculto")) {
             const contornoRect = contorno.getBoundingClientRect();
             const margemSeguranca = 30; // Define o "raio" da zona de segurança (em pixels)
 
-            // Calcula as coordenadas da área expandida
             const expandedLeft = contornoRect.left - margemSeguranca;
             const expandedTop = contornoRect.top - margemSeguranca;
             const expandedRight = contornoRect.right + margemSeguranca;
             const expandedBottom = contornoRect.bottom + margemSeguranca;
 
-            // Se o clique ocorreu dentro dessa área expandida, a flag é ativada
             if (e.clientX >= expandedLeft && e.clientX <= expandedRight &&
                 e.clientY >= expandedTop && e.clientY <= expandedBottom) {
                 isWithinSafeMargin = true;
             }
         }
 
-        // Se o clique foi no próprio objeto (para arrastar o objeto) OU dentro da margem de segurança do contorno,
-        // NÃO INICIE O ARRASTO DO CANVAS. Deixe o evento seguir para o ObjetoInteracaoManager.
-        if (e.target.closest(".objeto-edicao") || isWithinSafeMargin) { // <--- CORREÇÃO AQUI
+        // Se o clique foi dentro da margem de segurança do contorno (e não foi no objeto/contorno direto,
+        // que seria capturado pelo listener do 'canvas' acima), NÃO inicie o arrasto do canvas.
+        if (isWithinSafeMargin) {
             return; 
         }
 
         // Se nenhuma das condições acima for atendida, então é um clique válido para arrastar o canvas.
-        isArrastando = true; // Ativa a flag de arrasto do canvas
+        isArrastandoCanvas = true; // Ativa a flag de arrasto do canvas
         ultimoXCanvas = e.clientX; // Armazena a posição X inicial do mouse
         ultimoYCanvas = e.clientY; // Armazena a posição Y inicial do mouse
         transformado.style.transition = "none"; // Desativa transição CSS para um movimento mais direto
@@ -324,17 +380,16 @@ function iniciarSistemaDeZoom() {
         // Se uma interação de objeto (arrastar/redimensionar/rotacionar) estiver ativa,
         // o arrasto do canvas é desativado imediatamente para evitar conflitos.
         if (MAXEditor.interacaoObjetoAtiva) {
-            isArrastando = false; // Garante que a flag de arrasto do canvas seja desativada
+            isArrastandoCanvas = false; // Garante que a flag de arrasto do canvas seja desativada
             return;
         }
 
-        if (!isArrastando) return; // Se a flag de arrasto do canvas não estiver ativa, não faça nada
+        if (!isArrastandoCanvas) return; // Se a flag de arrasto do canvas não estiver ativa, não faça nada
 
         const dx = e.clientX - ultimoXCanvas; // Calcula a mudança na posição X do mouse
         const dy = e.clientY - ultimoYCanvas; // Calcula a mudança na posição Y do mouse
         
-        // Atualiza as propriedades de pan (posição) do MAXEditor
-        MAXEditor.panX += dx;
+        MAXEditor.panX += dx; // Atualiza as propriedades de pan (posição) do MAXEditor
         MAXEditor.panY += dy;
         
         ultimoXCanvas = e.clientX; // Atualiza a última posição do mouse para o próximo cálculo
@@ -345,7 +400,7 @@ function iniciarSistemaDeZoom() {
 
     // Fim do arrasto do canvas (mouseup)
     document.addEventListener("mouseup", () => {
-        isArrastando = false; // Desativa a flag de arrasto do canvas
+        isArrastandoCanvas = false; // Desativa a flag de arrasto do canvas
     });
 
     // ======================================
@@ -354,68 +409,63 @@ function iniciarSistemaDeZoom() {
 
     // Início do toque (touchstart) - Usado para identificar zoom de pinça ou ignorar toques de um dedo.
     wrapper.addEventListener("touchstart", (e) => {
-        // A lógica de prioridade para touch (margem de segurança e clique direto no objeto)
-        // é similar à do mouse, mas a forma como os eventos touch são propagados é diferente.
-        // O ObjetoInteracaoManager já lida com a captura do evento de um dedo no objeto/handle.
-        // Aqui, focamos no gesto de pinça (dois dedos) para zoom/pan do canvas.
-        if (e.touches.length === 2) { 
+        // Para toques de UM DEDO: Se o toque for diretamente em um objeto ou handle, o ObjetoInteracaoManager vai lidar.
+        // Se for em uma área vazia do canvas (mas não no wrapper diretamente), o listener do 'canvas' (acima) lida com desseleção.
+        // Este listener do wrapper foca principalmente no gesto de dois dedos para zoom/pan do canvas.
+        
+        if (e.touches.length === 2) { // Detecta gesto de dois dedos (pinça)
             const dx = e.touches[0].clientX - e.touches[1].clientX;
             const dy = e.touches[0].clientY - e.touches[1].clientY;
             distanciaInicialTouch = Math.hypot(dx, dy); // Calcula a distância inicial entre os dedos
 
             escalaInicialTouch = MAXEditor.zoom; // Armazena o zoom atual do MAXEditor como base para o zoom de pinça
 
-            // Posição média dos dois dedos para o cálculo inicial do pan (movimento)
-            ultimoXCanvas = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+            ultimoXCanvas = (e.touches[0].clientX + e.touches[1].clientX) / 2; // Posição média dos dois dedos para pan inicial
             ultimoYCanvas = (e.touches[0].clientY + e.touches[1].clientY) / 2;
 
-        } else if (e.touches.length === 1) { 
-            // Não inicia o pan no wrapper com um dedo. Essa interação é gerenciada pelo ObjetoInteracaoManager (para arrastar objetos).
-            // Nenhuma ação aqui para um dedo no wrapper, o que permite que o ObjetoInteracaoManager capture.
+        } else if (e.touches.length === 1) { // Detecta gesto de um dedo
+            // Nenhuma ação aqui para um dedo no wrapper, o que permite que o ObjetoInteracaoManager (para objetos)
+            // ou o listener do 'canvas' (para desseleção) capturem o evento.
         }
-    }, { passive: false }); // 'passive: false' é crucial para permitir e.preventDefault()
+    }, { passive: false });
 
     // Movimento do toque (touchmove) - Para zoom de pinça e pan com dois dedos
     wrapper.addEventListener("touchmove", (e) => {
-        // Se houver dois dedos e a distância inicial foi capturada (indicando um gesto de pinça)
         if (e.touches.length === 2 && distanciaInicialTouch !== null) {
             const [t1, t2] = e.touches;
 
             const dx = t1.clientX - t2.clientX;
             const dy = t1.clientY - t2.clientY;
-            const novaDistancia = Math.hypot(dx, dy); // Calcula a nova distância entre os dedos
+            const novaDistancia = Math.hypot(dx, dy);
 
-            const novoMeio = { // Calcula o novo ponto médio dos dedos
+            const novoMeio = {
                 x: (t1.clientX + t2.clientX) / 2,
                 y: (t1.clientY + t2.clientY) / 2
             };
 
-            const fatorZoom = novaDistancia / distanciaInicialTouch; // Calcula o fator de escala do zoom
-            // Atualiza o zoom do MAXEditor, garantindo que fique dentro dos limites
+            const fatorZoom = novaDistancia / distanciaInicialTouch;
             MAXEditor.zoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, escalaInicialTouch * fatorZoom));
 
-            const dxMeio = novoMeio.x - ultimoXCanvas; // Calcula o deslocamento do pan
-            const dyMeio = novoMeio.y - ultimoYCanvas; // Calcula o deslocamento do pan
+            const dxMeio = novoMeio.x - ultimoXCanvas;
+            const dyMeio = novoMeio.y - ultimoYCanvas;
             
-            // Atualiza as propriedades de pan do MAXEditor
             MAXEditor.panX += dxMeio;
             MAXEditor.panY += dyMeio;
 
-            ultimoXCanvas = novoMeio.x; // Atualiza a última posição média para o próximo cálculo
+            ultimoXCanvas = novoMeio.x;
             ultimoYCanvas = novoMeio.y;
 
-            atualizarTransformacao(); // Aplica a nova transformação visual
-            e.preventDefault(); // Previne a rolagem padrão da página, essencial para gestos de toque
+            atualizarTransformacao();
+            e.preventDefault();
         }
-    }, { passive: false }); // 'passive: false' permite preventDefault()
+    }, { passive: false });
 
     // Fim do toque (touchend) - Reseta a variável de distância inicial do touch
     wrapper.addEventListener("touchend", () => {
         distanciaInicialTouch = null;
     });
 
-    // Inicia o canvas centralizado e com zoom adequado ao carregar o sistema
-    centralizarCanvasComZoom();
+    centralizarCanvasComZoom(); // Inicia o canvas centralizado e com zoom adequado
 }
 
 
@@ -837,9 +887,8 @@ switch (tipo) {
   <div class="nome-camada" title="${nome}">${nome}</div> <!-- Nome com até 2 linhas -->
 
   <!-- ⠿ Ícone de arrastar -->
-  <span class="icone-camada icone-arrastar" title="Arrastar camada">
-    <svg viewBox="0 0 24 24"><path fill="white" d="M4 9h16v2H4V9zm0 4h16v2H4v-2z"/></svg>
-  </span>
+  <span class="icone-camada icone-arrastar" title="Arrastar camada" draggable="true"> <svg viewBox="0 0 24 24"><path fill="white" d="M4 9h16v2H4V9zm0 4h16v2H4v-2z"/></svg>
+    </span>
 `;
   
   
@@ -1076,25 +1125,51 @@ document.getElementById("btn-desselecionar").classList.remove("oculto");
   // =========================================
   // 👁️ Evento de clique no olho (visibilidade)
   // =========================================
-const btnOlho = camada.querySelector(".icone-visivel");
-btnOlho.addEventListener("click", () => {
-  const visivel = camada.dataset.visivel === "true";
-  camada.dataset.visivel = (!visivel).toString();
-
-  // Troca o SVG conforme o estado
-  btnOlho.innerHTML = visivel ? svgOlhoFechado : svgOlhoAberto;
-});
+ const btnOlho = camada.querySelector(".icone-visivel");
+        btnOlho.addEventListener("click", () => {
+            const visivel = camada.dataset.visivel === "true";
+            camada.dataset.visivel = (!visivel).toString();
+            btnOlho.innerHTML = visivel ? svgOlhoFechado : svgOlhoAberto;
+            
+            // --- CÓDIGO PARA ESCONDER/MOSTRAR O OBJETO NO CANVAS ---
+            const objCanvas = document.querySelector(`.objeto-edicao[data-id="${camada.dataset.id}"]`);
+            if (objCanvas) {
+                objCanvas.style.display = visivel ? 'none' : ''; // 'none' para esconder, '' para mostrar (retorna ao display padrão)
+            }
+            // --- FIM DO CÓDIGO ---
+        });
 
   // =========================================
   // 🔒 Evento de clique no cadeado (bloqueio)
   // =========================================
+// ... dentro de criarCamadaBase, no btnCadeado.addEventListener("click", () => { ...
+
 const btnCadeado = camada.querySelector(".icone-bloqueio");
 btnCadeado.addEventListener("click", () => {
-  const bloqueado = camada.dataset.bloqueado === "true";
-  camada.dataset.bloqueado = (!bloqueado).toString();
+    const bloqueadoAnterior = camada.dataset.bloqueado === "true"; // Estado ANTERIOR
+    const novoEstadoBloqueado = !bloqueadoAnterior; // NOVO estado
+    camada.dataset.bloqueado = novoEstadoBloqueado.toString(); // ATUALIZA o dataset
 
-  // Troca o SVG conforme o estado
-  btnCadeado.innerHTML = bloqueado ? svgCadeadoFechado : svgCadeadoAberto;
+    // Troca o SVG de acordo com o NOVO estado
+    btnCadeado.innerHTML = novoEstadoBloqueado ? svgCadeadoFechado : svgCadeadoAberto; // <--- CORREÇÃO AQUI
+    
+    // Lógica para ativar/desativar edição baseada no NOVO estado
+    if (novoEstadoBloqueado) { // Se a camada acabou de ser BLOQUEADA
+        if (MAXEditor.camadaSelecionada === camada.dataset.id) { // Se ela é a selecionada
+            ObjetoInteracaoManager.desativar();
+            removerContornoEdicao();
+            mostrarNotificacaoAviso("Camada bloqueada! Edição desativada.");
+        }
+    } else { // Se a camada acabou de ser DESBLOQUEADA
+        if (MAXEditor.camadaSelecionada === camada.dataset.id) { // Se ela é a selecionada
+            const objCanvas = document.querySelector(`.objeto-edicao[data-id="${camada.dataset.id}"]`);
+            if(objCanvas) {
+                ObjetoInteracaoManager.ativar(objCanvas);
+                aplicarContornoEdicao(objCanvas); // Reaplica contorno caso necessário
+                mostrarNotificacaoAviso("Camada desbloqueada! Edição ativada.");
+            }
+        }
+    }
 });
 
   // =========================================
@@ -1137,28 +1212,7 @@ document.getElementById("btn-desselecionar").classList.remove("oculto");
   
   
   
- // ================================================
-// ❌ FUNÇÃO PARA REMOVER A SELEÇÃO DA CAMADA ATIVA
-// E VOLTAR A MOSTRAR O CONTAINER PRINCIPAL
-// ================================================
-function limparSelecaoDeCamadas() {
-  // 🔁 Remove destaque de todas as camadas na aba lateral
-  document.querySelectorAll(".item-camada").forEach(c => c.classList.remove("ativa"));
 
-  // ❌ Remove ID salvo da camada selecionada
-  MAXEditor.camadaSelecionada = null;
-
-  // 🎯 Volta a exibir o container de botões principal (texto, imagem, forma...)
-  mostrarContainer("principal");
-  
-  ObjetoInteracaoManager.desativar(); // <-- ADICIONE ESTA LINHA AQUI
-
-  // 🔒 Esconde o botão de "voltar"
-  document.getElementById("btn-desselecionar").classList.add("oculto");
-  
-  // Oculta contorno visual
-  removerContornoEdicao();
-}
   
    // ================================================
 // 🖱️ BOTÃO "← VOLTAR" — remove seleção da camada
@@ -1340,6 +1394,166 @@ function removerContornoEdicao() {
 }
 
 
+// =======================================================================
+// ⬆️⬇️ ARRASTAR PARA REORDENAR CAMADAS (Drag and Drop)
+// Permite mudar a ordem visual das camadas tanto na lista quanto no canvas.
+// =======================================================================
+
+// A referência à lista de camadas já existe: const listaCamadas = document.getElementById("lista-camadas");
+
+let camadaArrastada = null;     // Armazena a camada que está sendo arrastada
+let linhaDemarcadora = null;    // Elemento visual da linha verde para indicar posição de drop
+
+// Cria e adiciona a linha demarcadora ao DOM uma única vez
+function criarLinhaDemarcadora() {
+    if (!linhaDemarcadora) {
+        linhaDemarcadora = document.createElement('div');
+        linhaDemarcadora.classList.add('linha-demarcadora');
+        linhaDemarcadora.style.position = 'absolute';
+        linhaDemarcadora.style.height = '2px';
+        linhaDemarcadora.style.background = '#00ff80'; /* Verde vivo */
+        linhaDemarcadora.style.zIndex = '1000'; /* Acima dos itens da camada */
+        linhaDemarcadora.style.width = 'calc(100% - 16px)'; /* Ajusta à largura da lista */
+        linhaDemarcadora.style.left = '8px'; /* Alinha com o padding da lista */
+        linhaDemarcadora.style.display = 'none'; /* Inicia escondida */
+        listaCamadas.appendChild(linhaDemarcadora);
+    }
+}
+
+// Evento quando o arrasto de um item de camada começa
+listaCamadas.addEventListener("dragstart", (e) => {
+    // Certifica-se de que estamos arrastando a camada pelo ícone de arrastar
+    const iconeArrastar = e.target.closest(".icone-arrastar");
+    if (iconeArrastar) {
+        camadaArrastada = iconeArrastar.closest(".item-camada"); // Pega o item da camada pai
+        if (camadaArrastada) {
+            // Adiciona uma classe para estilização durante o arrasto
+            camadaArrastada.classList.add("arrastando");
+            // Define o dado que será transferido (o ID da camada)
+            e.dataTransfer.setData("text/plain", camadaArrastada.dataset.id);
+            // Define o efeito visual do arrasto
+            e.dataTransfer.effectAllowed = "move";
+
+            criarLinhaDemarcadora(); // Garante que a linha existe
+            linhaDemarcadora.style.display = 'block'; // Mostra a linha
+        }
+    } else {
+        // Se o arrasto não começou do ícone, previne o comportamento padrão (arrasto de texto, etc.)
+        e.preventDefault(); 
+        e.dataTransfer.effectAllowed = "none";
+    }
+});
+
+// Evento quando a camada arrastada entra em uma zona que pode receber o drop
+listaCamadas.addEventListener("dragenter", (e) => {
+    e.preventDefault(); // Necessário para permitir o drop
+    const alvoDrop = e.target.closest(".item-camada");
+    if (alvoDrop && alvoDrop !== camadaArrastada) {
+        alvoDrop.classList.add("drag-over"); // Adiciona classe visual ao alvo do drop
+    }
+});
+
+// Evento quando a camada arrastada se move sobre uma zona de drop
+listaCamadas.addEventListener("dragover", (e) => {
+    e.preventDefault(); // Necessário para permitir o drop
+    e.dataTransfer.dropEffect = "move"; // Define o cursor como "mover"
+
+    const alvoDrop = e.target.closest(".item-camada");
+
+    // Remove a classe 'drag-over' de todos os outros elementos primeiro
+    document.querySelectorAll(".item-camada.drag-over").forEach(item => {
+        if (item !== alvoDrop) item.classList.remove("drag-over");
+    });
+
+    if (alvoDrop && alvoDrop !== camadaArrastada) {
+        alvoDrop.classList.add("drag-over"); // Adiciona classe 'drag-over' ao elemento atual
+
+        // Posiciona a linha demarcadora
+        const bounding = alvoDrop.getBoundingClientRect();
+        const listaBounding = listaCamadas.getBoundingClientRect(); // Para posição relativa à lista
+        const offset = e.clientY - bounding.top; // Posição do mouse dentro do alvo
+
+        // Se o mouse estiver na metade superior, a linha fica ACIMA do alvo
+        if (offset < bounding.height / 2) {
+            linhaDemarcadora.style.top = `${alvoDrop.offsetTop - (linhaDemarcadora.offsetHeight / 2)}px`;
+        } else {
+            // Se o mouse estiver na metade inferior, a linha fica ABAIXO do alvo
+            linhaDemarcadora.style.top = `${alvoDrop.offsetTop + alvoDrop.offsetHeight - (linhaDemarcadora.offsetHeight / 2)}px`;
+        }
+        linhaDemarcadora.style.display = 'block'; // Garante que a linha está visível durante o dragover
+    } else {
+        // Se arrastando sobre a área vazia da lista, esconde a linha
+        linhaDemarcadora.style.display = 'none';
+    }
+});
+
+// Evento quando a camada arrastada sai de uma zona de drop
+listaCamadas.addEventListener("dragleave", (e) => {
+    // Se o evento leave não for para um filho ou para a própria lista, esconde a linha e remove classe
+    if (!listaCamadas.contains(e.relatedTarget)) { // Se o mouse saiu completamente da lista
+        linhaDemarcadora.style.display = 'none';
+        document.querySelectorAll(".item-camada.drag-over").forEach(item => {
+            item.classList.remove("drag-over");
+        });
+    }
+});
+
+
+// Evento quando a camada é solta em uma zona de drop
+listaCamadas.addEventListener("drop", (e) => {
+    e.preventDefault();
+    linhaDemarcadora.style.display = 'none'; // Esconde a linha ao soltar
+    const alvoDrop = e.target.closest(".item-camada");
+    document.querySelectorAll(".item-camada.drag-over").forEach(item => { // Limpa todas as classes drag-over
+        item.classList.remove("drag-over");
+    });
+
+    if (camadaArrastada && alvoDrop && camadaArrastada !== alvoDrop) {
+        const bounding = alvoDrop.getBoundingClientRect();
+        const offset = e.clientY - bounding.top;
+
+        if (offset > bounding.height / 2) {
+            // Soltou na metade inferior, insere DEPOIS do alvo
+            listaCamadas.insertBefore(camadaArrastada, alvoDrop.nextSibling);
+        } else {
+            // Soltou na metade superior, insere ANTES do alvo
+            listaCamadas.insertBefore(camadaArrastada, alvoDrop);
+        }
+
+        // --- ATUALIZAÇÃO Z-INDEX DOS OBJETOS NO CANVAS ---
+        // Itera sobre todas as camadas na NOVA ordem e ajusta o z-index no canvas
+        let zIndexBase = 10; // Z-index inicial para os objetos do canvas. Objetos com z-index menores que 10 não serão afetados.
+        // Itera a lista de camadas da forma como elas estão AGORA no DOM, de baixo para cima,
+        // para que o item mais "alto" na lista (primeiro da lista visualmente) tenha o maior z-index.
+        const itemsCamadaOrdenados = Array.from(listaCamadas.children).reverse(); 
+
+        itemsCamadaOrdenados.forEach((item, index) => {
+            const objCanvas = document.querySelector(`.objeto-edicao[data-id="${item.dataset.id}"]`);
+            if (objCanvas) {
+                // Quanto mais para o "topo" da lista de camadas (índice 0), maior o z-index no canvas
+                // Multiplicar o index por um valor pequeno (ex: 1) para que o z-index aumente gradualmente
+                // Começamos do zIndexBase e adicionamos o index para criar a ordem
+                objCanvas.style.zIndex = zIndexBase + index; 
+            }
+        });
+        // --- FIM ATUALIZAÇÃO Z-INDEX ---
+
+        mostrarNotificacaoAviso(`✅ Camada reordenada!`);
+    }
+});
+
+// Evento quando o arrasto termina (limpa classes e reseta variáveis)
+listaCamadas.addEventListener("dragend", () => {
+    document.querySelectorAll(".item-camada.arrastando").forEach(item => {
+        item.classList.remove("arrastando");
+    });
+    document.querySelectorAll(".item-camada.drag-over").forEach(item => {
+        item.classList.remove("drag-over");
+    });
+    camadaArrastada = null; // Reseta a camada arrastada
+    linhaDemarcadora.style.display = 'none'; // Garante que a linha esteja escondida
+});
+
 
 // =======================================================================
 // 🖱️ GERENCIADOR DE INTERAÇÃO DE OBJETOS (Arrastar, Escalonar, Rotacionar)
@@ -1474,8 +1688,11 @@ const ObjetoInteracaoManager = {
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
         this.startX = clientX; // Posição X inicial do clique do mouse/toque na TELA
         this.startY = clientY; // Posição Y inicial do clique do mouse/toque na TELA
-        this.startLeft = parseFloat(this.objetoAtual.style.left) || 0; // Posição LEFT inicial do OBJETO no canvas
-        this.startTop = parseFloat(this.objetoAtual.style.top) || 0;   // Posição TOP inicial do OBJETO no canvas
+        
+        // CORREÇÃO: Obtenha a posição inicial do objeto de forma mais robusta usando getComputedStyle
+        const computedStyle = window.getComputedStyle(this.objetoAtual);
+        this.startLeft = parseFloat(computedStyle.left) || 0; // Posição LEFT inicial do OBJETO no canvas
+        this.startTop = parseFloat(computedStyle.top) || 0;   // Posição TOP inicial do OBJETO no canvas
 
         // Adiciona listeners globais para rastrear o movimento e o fim do arrasto
         document.addEventListener("mousemove", this.boundOnPointerMove);
@@ -1510,8 +1727,8 @@ const ObjetoInteracaoManager = {
         this.startY = clientY;
         this.startWidth = this.objetoAtual.offsetWidth;
         this.startHeight = this.objetoAtual.offsetHeight;
-        this.startLeft = parseFloat(this.objetoAtual.style.left) || 0;
-        this.startTop = parseFloat(this.objetoAtual.style.top) || 0;
+        this.startLeft = parseFloat(window.getComputedStyle(this.objetoAtual).left) || 0; // Use computedStyle aqui também
+        this.startTop = parseFloat(window.getComputedStyle(this.objetoAtual).top) || 0;   // Use computedStyle aqui também
 
         document.addEventListener("mousemove", this.boundOnPointerMove);
         document.addEventListener("mouseup", this.boundOnPointerUp);
@@ -1601,22 +1818,26 @@ const ObjetoInteracaoManager = {
                 case 'handle-br': // Bottom Right
                     newWidth = Math.max(20, this.startWidth + dx);
                     newHeight = Math.max(20, this.startHeight + dy);
+                    newLeft = this.startLeft; // Posição fixa para redimensionar a partir da direita/baixo
+                    newTop = this.startTop;
                     break;
                 case 'handle-bl': // Bottom Left
                     newWidth = Math.max(20, this.startWidth - dx);
                     newHeight = Math.max(20, this.startHeight + dy);
-                    newLeft = this.startLeft + dx;
+                    newLeft = this.startLeft + dx; // Move a esquerda
+                    newTop = this.startTop;
                     break;
                 case 'handle-tr': // Top Right
                     newWidth = Math.max(20, this.startWidth + dx);
                     newHeight = Math.max(20, this.startHeight - dy);
-                    newTop = this.startTop + dy;
+                    newLeft = this.startLeft; // Posição fixa para redimensionar a partir da direita/cima
+                    newTop = this.startTop + dy; // Move o topo
                     break;
                 case 'handle-tl': // Top Left
                     newWidth = Math.max(20, this.startWidth - dx);
                     newHeight = Math.max(20, this.startHeight - dy);
-                    newLeft = this.startLeft + dx;
-                    newTop = this.startTop + dy;
+                    newLeft = this.startLeft + dx; // Move a esquerda
+                    newTop = this.startTop + dy; // Move o topo
                     break;
             }
 
@@ -1684,6 +1905,46 @@ const ObjetoInteracaoManager = {
 };
 
 
+
+// =======================================================================
+// 🖱️ SELEÇÃO DE OBJETOS NO CANVAS VIA CLIQUE
+// Gerencia a seleção/desseleção de objetos ao clicar na área de edição.
+// =======================================================================
+canvasContainer.addEventListener("mousedown", (e) => {
+    // Tenta encontrar o objeto de edição mais próximo do elemento clicado
+    const clickedObject = e.target.closest(".objeto-edicao");
+    
+    // Se clicou em um objeto
+    if (clickedObject) {
+        const objectId = clickedObject.dataset.id;
+        const correspondingLayer = document.querySelector(`.item-camada[data-id="${objectId}"]`);
+        
+        // Se a camada correspondente já está selecionada E o objeto não está bloqueado,
+        // não precisamos fazer nada, pois a interação já está ativa para este objeto.
+        if (correspondingLayer && correspondingLayer.classList.contains("ativa") && correspondingLayer.dataset.bloqueado !== "true") {
+            // console.log("Objeto já selecionado e ativo. Nada a fazer."); // Descomente para depuração
+            return; 
+        }
+
+        // Se o objeto clicado não é o atualmente selecionado ou está bloqueado ou não era selecionado
+        if (correspondingLayer) {
+            // Simula um clique na camada correspondente para ativar a lógica de seleção.
+            // Isso irá: remover seleção anterior, adicionar 'ativa', mudar painel, ativar manager, etc.
+            correspondingLayer.click(); 
+            // console.log("Simulando clique na camada:", objectId); // Descomente para depuração
+        }
+    } else {
+        // Se clicou em uma área vazia do canvas (não em um objeto)
+        // E existe uma camada atualmente selecionada, então desselecione.
+        if (MAXEditor.camadaSelecionada) {
+            limparSelecaoDeCamadas();
+            
+            // console.log("Clicou no canvas vazio. Desselecionando."); // Descomente para depuração
+        }
+    }
+});
+
+
 // ===================================
 // 🧼 Limpa a interação ativa de objetos
 // ===================================
@@ -1701,7 +1962,26 @@ function finalizarInteracaoObjetoAnterior() {
 }
 
 
+// =======================================================================
+// 🔄 ATUALIZAÇÃO DE Z-INDEX DE TODOS OS OBJETOS NO CANVAS
+// Garante que a ordem visual dos objetos no canvas corresponda à lista de camadas.
+// =======================================================================
+function atualizarTodosZIndexes() {
+    let zIndexBase = 10; // Z-index inicial para os objetos do canvas
 
+    // Pega todos os elementos de camada na lista, na ordem atual do DOM
+    // Reverse para que o primeiro item da lista (topo) tenha o MAIOR z-index
+    const itemsCamadaOrdenados = Array.from(listaCamadas.children).reverse(); 
+
+    itemsCamadaOrdenados.forEach((item, index) => {
+        const objCanvas = document.querySelector(`.objeto-edicao[data-id="${item.dataset.id}"]`);
+        if (objCanvas) {
+            // O item mais ao topo na lista de camadas terá um z-index maior
+            objCanvas.style.zIndex = zIndexBase + index; 
+        }
+    });
+    // console.log("Z-indexes dos objetos no canvas atualizados."); // Descomente para debug
+}
   
   
   
