@@ -345,6 +345,7 @@ footer {
  /* background: rgba(0, 255, 0, 0.1);  💚 Apenas para debug visual temporário */
   overflow: hidden;
   touch-action: none;
+  z-index: 0;
 }
 
 
@@ -391,6 +392,7 @@ footer {
   touch-action: none;
   display: inline-block;
   vertical-align: top;
+  z-index: 10;
 }
 
 .objeto-edicao img {
@@ -407,7 +409,7 @@ footer {
 /* ======================================== */
 #contorno-selecao {
   position: absolute;
-  pointer-events: none;
+  
   /* 🔸Linha: sólida + levemente brilhante */
   border: 2px solid #00e676;
   border-radius: 6px;               /* cantos suaves */
@@ -468,6 +470,7 @@ footer {
 /* 🔒 Remove barras visuais no canva (como no mobile) */
 #canvas-container {
   scrollbar-width: none;            /* Firefox */
+  z-index: 9999;
 }
 #canvas-container::-webkit-scrollbar { /* Chrome, Safari */
   display: none;
@@ -538,49 +541,165 @@ footer {
 }
 
 /* ================================ */
-/*         MENU LATERAL            */
-/*         TELA DE EDIÇÃO           */
+/*      MENU LATERAL (visual)       */
 /* ================================ */
 #menu-lateral {
+  width: 180px !important;            /* 💪 força a largura */
+  left: 0 !important;
+  right: auto !important;
+
   position: fixed;
   top: 0;
-  left: 0;
-  width: 280px;
   height: 100vh;
-  background-color: #1e1e1e;
-  border-right: 1px solid #333;
-  z-index: 999;
+  background: rgba(30, 30, 30, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 2px 0 6px rgba(0, 0, 0, 0.45);
+  z-index: 2000;
+  transform: translateX(-100%);
   transition: transform 0.3s ease;
-  transform: translateX(-100%); /* Escondido por padrão */
-  user-select: none;
 }
 
-/* Quando visível (remoção da classe oculto) */
+#menu-lateral .menu-conteudo p {
+  font-size: 15px;
+  font-weight: 600;
+  color: #ffffff;
+  padding: 14px 16px 10px;
+  margin: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  text-transform: none;
+  letter-spacing: 0.3px;
+  background-color: rgba(255, 255, 255, 0.03); /* leve fundo para destaque */
+}
+
+.cabecalho-menu {
+  width: fit-content;                /* 🔲 largura justa ao conteúdo */
+  margin: 8px auto 4px;              /* 🧩 centraliza horizontalmente */
+  padding: 4px 12px;                 /* 🎯 mínimo de altura/vertical e bom horizontal */
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  text-align: center;
+}
+
+.cabecalho-menu .titulo-menu {
+  font-size: 16px;
+  font-weight: bold;
+  letter-spacing: 3px;
+  color: #00ffaa;
+  line-height: 1.2;
+}
+
+.cabecalho-menu .subtitulo-menu {
+  font-size: 11px;
+  font-weight: 400;
+  color: #ccc;
+  letter-spacing: 1px;
+  text-transform: lowercase;
+  line-height: 1;
+}
+
+
 #menu-lateral.ativo {
   transform: translateX(0);
 }
 
-/* Conteúdo interno do menu */
-.menu-conteudo {
-  padding: 20px;
-  color: white;
-  font-size: 16px;
+/* conteúdo interno organizado */
+#menu-lateral .menu-conteudo{
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 24px 20px;
+  overflow-y: auto;              /* rolagem interna se precisar */
 }
 
-/* Botão de fechar (X) no topo */
+/* título ou parágrafo dentro do menu */
+#menu-lateral .menu-conteudo p{
+  font-size: 15px;
+  margin: 0;
+  color: #cfcfcf;
+}
+
+/* botão do menu lateral */
+.botao-menu-lateral{
+  background: #136b38;           /* verde padrão MAX */
+  color: #fff;
+  border: none;
+  padding: 10px 12px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;                      /* espaço ícone+texto */
+  font-size: 14px;
+  cursor: pointer;
+  transition: background .25s, transform .15s;
+}
+
+.botao-menu-lateral:hover{
+  background: #4caf50;
+  transform: translateY(-2px);   /* micro-efeito de “levantar” */
+}
+
 .fechar-menu {
   position: absolute;
-  top: 10px;
-  right: 14px;
-  font-size: 22px;
-  cursor: pointer;
+  top: 12px;
+  left: 12px;                 /* 👈 mudou de right: 12px para left */
+  font-size: 20px;
+  font-weight: bold;
   color: #ccc;
-  transition: color 0.3s;
-  user-select: none;
+  cursor: pointer;
+  transition: color 0.2s, transform 0.2s;
 }
 
 .fechar-menu:hover {
-  color: white;
+  color: #fff;
+  transform: rotate(90deg);
+}
+
+
+/* responsivo: ainda mais compacto em telas estreitas (< 480 px) */
+@media (max-width: 480px){
+  #menu-lateral{ width: 200px; }
+}
+
+@media (max-width: 400px) {
+  #abrir-camadas svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  #abrir-camadas {
+    padding: 6px;
+    max-width: 40px;
+  }
+}
+
+#fundo-escuro-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.55); /* Escurece */
+  backdrop-filter: blur(2px);     /* Leve desfoque */
+  -webkit-backdrop-filter: blur(2px); /* Compatível com Safari */
+  z-index: 1999; /* 🔥 Fica acima de tudo... */
+
+  opacity: 1;
+  pointer-events: all;
+  transition: opacity 0.3s ease;
+}
+
+#fundo-escuro-menu.oculto {
+  opacity: 0;
+  pointer-events: none;
+}
+
+#fundo-escuro-menu.ativo {
+  opacity: 1;
+  pointer-events: all;
 }
 
 /* ================================ */
