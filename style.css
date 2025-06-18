@@ -1,304 +1,696 @@
-/* Resetando o estilo padrão da página e aplicando tema escuro */
-body {
+/* Reset básico para responsividade */
+*, *::before, *::after {
+  box-sizing: border-box; /* Inclui padding e border no cálculo da largura/altura */
+}
+
+
+/* =============================== */
+/* 🎨 Fundo com estrelas + chuva   */
+/* =============================== */
+/* Camada 1: Fundo Base (cor e linhas diagonais) */
+body, html {
   margin: 0;
   padding: 0;
-  font-family: 'Segoe UI', sans-serif;
-  background-color: #121212; /* Fundo escuro */
-  color: white;              /* Texto branco */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;             /* Ocupa toda a altura da tela */
-}
-
-/* Container geral da tela inicial */
-#tela-inicial {
-  text-align: center;
-}
-
-/* ================================ */
-/*         ESTILO DO TÍTULO         */
-/* ================================ */
-/* Container geral centralizado */
-.logo-max-editor {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 40px;
-  font-family: 'Segoe UI', sans-serif;
+  overflow: hidden; /* **Mantenha o overflow aqui** para controlar a rolagem da página inteira */
+  font-family: 'Poppins', sans-serif;
+  color: white;
+  height: 100%; /* **Mantenha o height aqui** para definir a altura da viewport */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
   user-select: none;
 }
 
-/* Ícone da logo (pincel) com animação */
-.icone-logo {
-  width: 64px;
-  height: 64px;
-  background-image: url("B16F9EF0-7FBF-4459-AD61-8762E97BD37A.png");
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-  animation: liquido 6s infinite ease-in-out;
-}
-
-/* Texto principal (MAX) */
-.texto-max {
-  font-size: 150px;
-  font-weight: 900;
-  letter-spacing: 1px;
-
-  /* 🎨 Gradiente animado com efeito líquido */
-  background: linear-gradient(90deg, #00ff88, #00cfff, #00ff88);
-  background-size: 300% 300%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-
-  /* 🌊 Efeitos combinados: líquido + brilho sutil */
-  animation: liquido 5s infinite linear, brilho-pulsante 4s infinite ease-in-out;
-
-  /* 🔧 Reduz espaço vertical entre linhas e ajusta margem */
-  line-height: 1;
-  margin-bottom: -10px;
-  user-select: none;
-}
-
-
-/* Texto secundário (EDITOR) */
-.texto-editor {
-  font-size: 22px;
-  color: #e0e0e0;
-  letter-spacing: 15px;
-  font-weight: 600;
+#background-layer {
+  position: fixed; /* Fixa o fundo na viewport */
+  top: 0;
+  left: 0;
+  width: 100vw; /* Ocupa 100% da largura da viewport */
+  height: 100vh; /* Ocupa 100% da altura da viewport */
   
-  /* 👇 Reduz ainda mais o espaço entre os textos */
-  margin-top: 0;
-  user-select: none;
+  /* MOVIDO A PARTIR DE body, html */
+  background: radial-gradient(ellipse at center, #061821 0%, #020c11 100%),
+              linear-gradient(135deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: auto, 120px 120px;
+  background-position: center center, 0 0;
+  background-repeat: no-repeat, repeat;
+  
+  z-index: 1; /* **Camada 1 (mais ao fundo), ajustado para ser o mais baixo** */
 }
 
-.texto-max,
-.texto-editor {
-  display: block; /* ⬅️ Faz com que fiquem um abaixo do outro */
+
+
+/* ===================================
+🌠 Efeito de estrelas cadentes na diagonal
+=================================== */
+
+/* Container que cobre toda a tela */
+#container-estrelas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1; /* atrás dos elementos principais */
 }
 
+/* Estilo de cada estrela cadente */
+.estrela-cadente {
+  position: absolute;
+  width: 3px;
+  height: 220px; /* cauda mais longa */
+  background: linear-gradient(
+    to bottom right,
+    rgba(0, 255, 255, 0.8) 0%,
+    rgba(0, 255, 255, 0.6) 30%,
+    rgba(0, 255, 255, 0.3) 60%,
+    rgba(0, 255, 255, 0) 100%
+  );
+  opacity: 0.1; /* Opacidade da cauda */
+  border-radius: 50%;
+  filter: blur(2px);
+  transform: rotate(45deg);
+  animation: queda-diagonal linear forwards;
+}
+
+
+/* Bolinha na cabeça da estrela */
+.estrela-cadente::before {
+  content: "";
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: rgba(0, 255, 255, 1); /* ciano forte */
+  border-radius: 50%;
+  box-shadow: 0 0 10px 5px rgba(0, 255, 255, 0.8);
+  opacity: 1; /* Opacidade da cabeça */
+  
+  /* Posiciona na ponta da estrela (parte inferior esquerda da listra rotacionada) */
+  bottom: 0;
+  left: 0;
+  transform: translate(-50%, 50%);
+}
+
+.estrela-cadente::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15); /* branca e transparente */
+  backdrop-filter: blur(4px);             /* desfoca o fundo atrás */
+  box-shadow: 0 0 10px 2px rgba(255, 255, 255, 0.3);
+  pointer-events: none;                   /* para não interferir em cliques */
+  mix-blend-mode: screen;                 /* mistura legal para brilho */
+}
+
+#container-estrelas.oculto {
+  display: none !important;
+}
+
+
+/* Animação */
+@keyframes queda-diagonal {
+  to {
+    transform: translate(-100vw, 100vh) rotate(45deg);
+    opacity: 0;
+  }
+}
 
 
 /* ================================ */
-/*     ANIMAÇÃO DO GRADIENTE       */
+/*       Tela principal             */
 /* ================================ */
-@keyframes gradientFlow {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+/* Camada 3: Tela Inicial (Nomes e Botões) - Acima das estrelas */
+#tela-inicial {
+  display: flex; /* Transforma em contêiner flexível */
+  flex-direction: column; /* Organiza os itens em coluna */
+  height: 100vh; /* Garante que ocupe a altura total da viewport */
+  width: 100vw; /* Garante que ocupe a largura total da viewport */
+  justify-content: space-between; /* Distribui espaço entre os itens */
+  align-items: center; /* Centraliza os itens horizontalmente */
+  padding: 10px 10px 20px 10px; /* Adiciona um padding geral */
+  position: relative; /* Essencial para o z-index funcionar */
+  overflow: hidden; /* Já definido */
+  z-index: 3;
 }
-@keyframes gradienteAnimado {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+
+
+/* Primeiro Ponto de Luz Pulsante (o ciano grande) */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%) translateY(-50%);
+  width: 200vw;
+  height: 200vw;
+  max-width: 2000px;
+  max-height: 2000px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 255, 240, 0.08) 0%, transparent 50%);
+  pointer-events: none;
+  animation: subtle-pulse-light 4s infinite ease-in-out alternate;
+    z-index: 4;
+
 }
-/* 🌊 Animação líquida */
-@keyframes liquido {
+
+@keyframes subtle-pulse-light {
   0% {
-    background-position: 0% 50%;
+    transform: translateX(-50%) translateY(-50%) scale(0.98); /* Pulsação mais sutil */
+    opacity: 0.8; /* Opacidade mínima no ciclo */
   }
   50% {
-    background-position: 100% 50%;
+    transform: translateX(-50%) translateY(-50%) scale(1.02); /* Pulsação mais sutil */
+    opacity: 1; /* Opacidade máxima no ciclo */
   }
   100% {
-    background-position: 0% 50%;
+    transform: translateX(-50%) translateY(-50%) scale(0.98); /* Volta para o tamanho menor */
+    opacity: 0.8; /* Volta para a opacidade mínima */
   }
-  /* ✨ Brilho suave e sutil */
-@keyframes brilho-pulsante {
-  0%, 100% {
-    text-shadow: 0 0 2px #00ffcc, 0 0 4px #00ffee;
-    filter: brightness(1);
+}
+
+
+/* Segundo Ponto de Luz Pulsante (o azul menor) */
+body::after {
+  content: "";
+  position: fixed;
+  top: 20%;
+  left: 70%;
+  transform: translateX(-50%) translateY(-50%);
+  width: 120vw;
+  height: 120vw;
+  max-width: 1200px;
+  max-height: 1200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 255, 180, 0.06) 0%, transparent 30%);
+  pointer-events: none;
+  animation: subtle-pulse-light-secondary 5s infinite ease-in-out alternate;
+    z-index:5;
+
+}
+
+@keyframes subtle-pulse-light-secondary {
+  0% {
+    transform: translateX(-50%) translateY(-50%) scale(0.97); /* Pulsação sutil */
+    opacity: 0.7; /* Opacidade mínima no ciclo */
   }
   50% {
-    text-shadow: 0 0 6px #00ffcc, 0 0 12px #00ffee;
-    filter: brightness(1.1);
+    transform: translateX(-50%) translateY(-50%) scale(1.03); /* Pulsação sutil */
+    opacity: 0.9; /* Opacidade máxima no ciclo */
+  }
+  100% {
+    transform: translateX(-50%) translateY(-50%) scale(0.97); /* Volta para o tamanho menor */
+    opacity: 0.7; /* Volta para a opacidade mínima */
   }
 }
 
 
-/* 🔆 Adiciona a animação ao MAX sem remover as outras */
+
+
+
+/* =============================== */
+/* 🔥 Título principal             */
+/* =============================== */
+
+.logo-max {
+  text-align: center; /* Já existe */
+  margin-top: 0;   /* Já existe */
+  width: 100%;        /* Garante que ocupe toda a largura disponível */
+  display: flex;      /* Usa Flexbox para centralizar o h1 */
+  justify-content: center; /* Centraliza horizontalmente o h1 */
+  align-items: center;   /* Centraliza verticalmente se o h1 tiver altura diferente */
+}
+
+.titulo-max-editor {
+  font-size: clamp(80px, 15vw, 150px); /* Ajustado para ser maior */
+  font-weight: 800;
+  text-shadow: none; /* Remove completamente o brilho forte */
+  animation: none; /* Remove a animação de pulso que gerava o brilho */
+   text-align: center; /* Garante que o texto dentro do h1 também esteja centralizado */
+
+}
+
 .texto-max {
-  animation: liquido 5s infinite linear, brilho-pulsante 3s infinite ease-in-out;
+  position: relative;
+  z-index: 0;
+
+  background: linear-gradient(
+    120deg,
+    rgba(0, 255, 240, 0.5) 15%,
+    rgba(0, 255, 128, 0.4) 30%,
+    rgba(0, 255, 240, 0.5) 50%,
+    rgba(0, 255, 128, 0.3) 70%,
+    rgba(0, 255, 240, 0.5) 85%
+  );
+  background-size: 300% 300%;
+  animation: moveLuzBase 12s linear infinite;
+
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+
+  text-shadow: 0 0 4px rgba(0, 255, 240, 0.15);
 }
 
-  
-  
+.texto-max::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+
+  background: linear-gradient(
+    120deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.6) 40%,
+    rgba(255, 255, 255, 1) 50%,
+    rgba(255, 255, 255, 0.6) 60%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 300% 300%;
+  animation: moveLuzSpot 8s linear infinite;
+
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  mix-blend-mode: screen;
+}
+
+@keyframes moveLuzBase {
+  0% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 100% 0%;
+  }
+  100% {
+    background-position: 0% 0%;
+  }
+}
+
+@keyframes moveLuzSpot {
+  0% {
+    background-position: 50% 0%;
+  }
+  50% {
+    background-position: 50% 100%;
+  }
+  100% {
+    background-position: 50% 0%;
+  }
 }
 
 
 
-
-
-
-/* Estilo dos botões principais */
-.botoes button {
+.texto-editor {
+  color: #e6e6e6;
+  letter-spacing: 0.4em;
+  font-size: clamp(14px, 2vw, 18px);
   display: block;
-  width: 200px;
-  margin: 10px auto;
-  padding: 12px;
-  border: none;
-  border-radius: 10px;
-  font-size: 16px;
-  background-color: #4caf50;
+  margin-top: -10px;
+}
+
+.texto-br {
+  font-size: 0.6em;
+  vertical-align: super;
+  margin-left: 5px;
+  font-weight: bold;
+  /* Remove a cor fixa para usar o background com degradê */
+  color: transparent;
+  background: linear-gradient(
+    90deg,
+    #009b3a,   /* verde bandeira */
+    #fedf00,   /* amarelo bandeira */
+    #002776,   /* azul bandeira */
+    #009b3a,
+    #fedf00,
+    #002776
+  );
+  background-size: 200% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: bandeira-br 3s linear infinite;
+  /* Para ficar um pouco destacado */
+  text-shadow:
+    0 0 4px rgba(0, 155, 58, 0.6),
+    0 0 6px rgba(254, 223, 0, 0.6);
+}
+
+@keyframes bandeira-br {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 200% 0%;
+  }
+}
+
+
+
+
+
+/* =============================== */
+/* 🔘 Botões                       */
+/* =============================== */
+.botoes {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centraliza os itens */
+  justify-content: center;/* Centraliza na vertical */
+  gap: 15px;
+  margin-top: 0;
+  /* Adicionar para garantir que o contêiner dos botões não estoure */
+  width: 100%; /* Ocupa a largura total do pai */
+  padding: 2px 10px; /* Adicione um padding horizontal para evitar que os botões encostem nas bordas em telas pequenas */
+  max-width: 450px; /* Garante que não estoure a largura da viewport */
+  text-align: center;
+}
+
+.botoes button {
+  position: relative;
+  background-color: rgba(7, 37, 46, 0.8);
+  color: white;
+  padding: clamp(12px, 3vw, 16px) clamp(20px, 6vw, 60px);
+  border-radius: 14px;
+  border: 1px solid rgba(0, 238, 211, 0.4);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 8px #00eed344;
+  font-size: clamp(16px, 2vw, 20px);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: clamp(260px, 50vw, 400px);
+  overflow: visible;
+  transition: all 0.3s ease, transform 0.3s ease;
+}
+
+button .icone {
+  position: absolute;
+  left: 10px;
+  width: 20px;
+  height: 20px;
+}
+
+
+/* ================================== */
+/* Mechendo individualmente nos botões*/
+/* ================================== */
+
+#btn-criar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: clamp(260px, 50vw, 400px);
+  padding: clamp(12px, 3vw, 16px) clamp(20px, 6vw, 60px);
+  border-radius: 14px;
+  border: 1px solid rgba(0, 238, 211, 0.4);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 8px #00eed344;
   color: white;
   cursor: pointer;
-  transition: background 0.3s; /* Suaviza mudança ao passar o mouse */
+  transition: all 0.3s ease;
 }
 
-/* Efeito hover ao passar o mouse nos botões */
-.botoes button:hover {
-  background-color: #43a047; /* Verde um pouco mais escuro */
+#btn-config,
+#btn-lista {
+  opacity: 0.2; /* Opacidade reduzida (indicando que não está pronto) */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: clamp(260px, 50vw, 400px);
+  padding: clamp(12px, 3vw, 16px) clamp(20px, 6vw, 60px);
+  border-radius: 14px;
+  border: 1px solid rgba(0, 238, 211, 0.4);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 8px #00eed344;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
 }
 
-/* Mensagem central de desenvolvimento */
-.notificacao {
-  color: #4caf50;
-  font-weight: bold;
-  margin-top: 20px;
-  font-size: 7px;
+
+
+
+.botoes button .icone {
+ width: clamp(20px, 3vw, 24px); /* Imagem do ícone também pode ser responsiva */
+  height: clamp(20px, 3vw, 24px);
+  filter: brightness(0) saturate(100%) invert(75%) sepia(75%) saturate(580%) hue-rotate(130deg);
+
+  display: block;
+ 
 }
 
-/* ================================ */
-/*        RODAPÉ FIXO INICIAL      */
-/* ================================ */
-footer {
-  position: fixed;       /* fixa na tela */
-  bottom: 0;             /* gruda na parte inferior */
+
+@keyframes pulsarLuz {
+  0%, 100% {
+    box-shadow:
+      -15px -15px 30px #00eed344,
+      15px -15px 30px #00eed344,
+      -15px 15px 30px #00ffb344, /* verde azulado */
+      15px 15px 30px #00ffb344;
+    opacity: 0.6;
+  }
+  50% {
+    box-shadow:
+      -15px -15px 50px #00eed355,
+      15px -15px 50px #00eed355,
+      -15px 15px 50px #00ffb355,
+      15px 15px 50px #00ffb355;
+    opacity: 0.3;
+  }
+}
+
+.botoes button::before {
+  content: '';
+  position: absolute;
+  top: 0;
   left: 0;
-  width: 100%;           /* ocupa toda a largura da tela */
-  background-color: #121212;
-  color: #bbb;
-  font-size: 14px;
-  text-align: center;
-  padding: 10px;
-  z-index: 100;
-  border-top: 1px solid #333;
-  user-select: none;
+  width: 100%;
+  height: 100%;
+  border-radius: 14px;
+  z-index: -1;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  box-shadow:
+    -15px -15px 30px #00eed344,
+    15px -15px 30px #00eed344,
+    -15px 15px 30px #00ffb344,
+    15px 15px 30px #00ffb344;
 }
 
-/* Link do Instagram alinhado horizontalmente */
+.botoes button:hover::before {
+  opacity: 1;
+  animation: pulsarLuz 2s infinite ease-in-out;
+}
+
+.botoes button:hover {
+  transform: scale(1.03);
+  box-shadow:
+    0 0 8px #00eed388,
+    0 0 15px #00ffb366;
+}
+
+
+
+
+/* =============================== */
+/* ⚠️ Notificação                 */
+/* =============================== */
+.notificacao {
+  text-align: center;
+  margin: 0 auto 5vh auto;
+  width: 80%;
+  max-width: 90vw; /* Garante que a notificação não estoure horizontalmente */
+  padding: 8px 3vw; /* Ajusta o padding horizontal com vw para responsividade */
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08); /* Borda mais sutil */
+  font-size: clamp(10px, 1.2vw, 13px); /* Fonte menor */
+  color: #cccccc;
+  backdrop-filter: blur(4px); /* Blur ligeiramente menor */
+  opacity: 0.3; /* Opacidade reduzida */
+  background-color: rgba(255, 255, 255, 0.03);
+  background-color: rgba(255, 255, 255, 0.03)
+
+
+}
+
+
+/* =============================== */
+/* ⬇️ Rodapé                      */
+/* =============================== */
+footer {
+  position: absolute;
+  bottom: 10px;
+  width: 100%;
+  text-align: center;
+  font-size: clamp(10px, 1.2vw, 14px);
+  color: #b0b0b0;
+  opacity: 0.8;
+  text-shadow:
+    0 0 3px rgba(0, 255, 240, 0.15),   /* ciano suave */
+    0 0 6px rgba(0, 255, 179, 0.15);   /* verde azulado suave */
+}
+
 .insta-link {
   text-decoration: none;
-  color: #bbb;
+  color: #00fff0;
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  text-shadow:
+    0 0 2px rgba(0, 255, 240, 0.12),
+    0 0 4px rgba(0, 255, 179, 0.12);
 }
 
-/* Ícone do Instagram com cor adaptada ao tema escuro */
 .insta-icon {
-  width: 16px;
-  height: 16px;
-  filter: invert(80%);
+  width: clamp(12px, 1.5vw, 14px);
+  height: clamp(12px, 1.5vw, 14px);
+  filter: brightness(0) saturate(100%) invert(75%) sepia(75%) saturate(580%) hue-rotate(130deg);
 }
 
-/* Link do Instagram com alinhamento horizontal */
-.insta-link {
-  text-decoration: none;
-  color: #bbb;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px; /* Espaço entre ícone e @ */
-}
-
-/* Ícone do Instagram */
-.insta-icon {
-  width: 12px;
-  height: 12px;
-  filter: invert(80%); /* Deixa o ícone branco/cinza no tema escuro */
-}
 
 
 /* ============================================= */
 /*        ESTILO DO MODAL CRIAR PROJETO          */
 /* ============================================= */
+
 .modal {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.7); /* fundo escuro transparente */
+  background: rgba(0, 10, 20, 0.7); /* Fundo escuro translúcido */
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 10;
+  z-index: 20;
+  backdrop-filter: blur(6px); /* Fundo desfocado */
 }
 
-/* Esconde o MODAL CRIAR PROJETO inicialmente */
+/* Esconde o modal inicialmente */
 .oculto {
   display: none;
 }
 
-/* Caixa central do MODAL CRIAR PROJETO */
+/* Caixa central do Modal */
 .conteudo-modal {
-  background: #1e1e1e;
+  background: rgba(7, 37, 46, 0.85); /* Vidro futurista */
+  border: 1px solid rgba(0, 238, 211, 0.3);
+  border-radius: 16px;
   padding: 30px;
-  border-radius: 12px;
   width: 90%;
-  max-width: 400px;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.6);
-  text-align: left;
+  max-width: 420px;
+  box-shadow: 
+    0 0 8px rgba(0, 238, 211, 0.2),
+    0 0 30px rgba(0, 238, 211, 0.15);
   position: relative;
   user-select: none;
+  overflow: hidden;
 }
 
-/* Título do MODAL CRIAR PROJETO */
+/* Efeito de luz interna no modal */
+.conteudo-modal::before {
+  content: '';
+  position: absolute;
+  inset: -50%;
+  background: radial-gradient(circle, rgba(0,255,240,0.05) 0%, transparent 70%),
+              radial-gradient(circle, rgba(0, 180, 90, 0.05) 0%, transparent 70%);
+  z-index: -1;
+  animation: girarLuz 15s linear infinite;
+}
+
+@keyframes girarLuz {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Título do Modal */
 .conteudo-modal h2 {
-  color: #4caf50;
+  color: #00fff0;
+  font-size: 26px;
   margin-bottom: 20px;
-  user-select: none;
+  text-align: center;
+  letter-spacing: 1px;
 }
 
-/* Rótulos dos campos */
+/* Rótulos */
 .conteudo-modal label {
   display: block;
-  margin-top: 10px;
-  font-weight: bold;
+  margin-top: 12px;
+  font-weight: 600;
+  color: #e0e0e0;
+  font-size: 14px;
 }
 
 /* Campos de entrada */
 .conteudo-modal input {
   width: 100%;
-  padding: 10px;
-  margin-top: 5px;
-  border-radius: 8px;
-  border: none;
-  background: #2c2c2c;
-  color: white;
+  padding: 10px 14px;
+  margin-top: 6px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 238, 211, 0.3);
+  background: rgba(44, 64, 70, 0.8);
+  color: #fff;
+  outline: none;
+  transition: border 0.3s;
 }
 
-/* Botão de confirmar criação */
+.conteudo-modal input:focus {
+  border-color: #00fff0;
+}
+
+/* Botão de confirmar */
 .conteudo-modal button {
-  margin-top: 20px;
+  margin-top: 24px;
   width: 100%;
   padding: 12px;
-  background-color: #136b38;
+  background: linear-gradient(135deg, #00fff0, #00c56e);
   border: none;
-  border-radius: 10px;
-  color: white;
+  border-radius: 12px;
+  color: #000;
+  font-weight: bold;
   font-size: 16px;
   cursor: pointer;
+  box-shadow:
+    0 0 10px rgba(0,238,211,0.4),
+    0 0 20px rgba(0,180,90,0.3);
+  transition: transform 0.3s, box-shadow 0.3s;
 }
 
 .conteudo-modal button:hover {
-  background-color: #4caf50;
+  transform: scale(1.03);
+  box-shadow:
+    0 0 15px rgba(0,238,211,0.5),
+    0 0 30px rgba(0,180,90,0.4);
 }
-/* ============================ */
-/*        BOTÃO DE FECHAR      */
-/* ============================ */
+
+/* Botão de fechar */
 .fechar {
   position: absolute;
   top: 15px;
   right: 15px;
-  font-size: 22px;
-  color: #aaa;
+  font-size: 24px;
+  color: #b0b0b0;
   cursor: pointer;
   font-weight: bold;
-  transition: color 0.3s;
-  user-select: none;
+  transition: color 0.3s, transform 0.3s;
+}
+
+.fechar:hover {
+  color: #00fff0;
+  transform: scale(1.2);
 }
 
 
@@ -322,183 +714,297 @@ footer {
 /* TELA DE EDIÇÃO GERAL                                                    */
 /* ======================================================================= */
 #tela-editor {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    width: 100vw;
-    background-color: #1e1e1e;
-    overflow: hidden;
-    position: relative; /* Para posicionar elementos filhos com 'absolute' */
-    z-index: 1; /* Nível base para a tela de edição */
+  display: relative;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  background: radial-gradient(circle at center, #0d1e22 0%, #0a1518 100%);
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+  backdrop-filter: blur(2px);
+}
+
+/* Efeito de luzes internas animadas (ciano e verde) */
+#tela-editor::before {
+  content: "";
+  position: absolute;
+  inset: -30%;
+  background: radial-gradient(circle, rgba(0, 255, 240, 0.04) 0%, transparent 70%),
+              radial-gradient(circle, rgba(0, 255, 180, 0.03) 20%, transparent 80%);
+  animation: moverLuzEditor 30s linear infinite;
+  z-index: 0;
+  pointer-events: none;
+}
+
+@keyframes moverLuzEditor {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(180deg) scale(1.05);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
 }
 
 
-/* ======================================================================= */
-/* WRAPPER E ELEMENTOS DE TRANSFORMAÇÃO DO CANVAS                          */
-/* Gerenciam o zoom e pan da área de edição.                               */
-/* ======================================================================= */
+
+/* ============================== */
+/* WRAPPER DO CANVAS (fundo geral da edição) */
 #canvas-wrapper {
-    position: absolute;
-    top: 0;
-    left: 0;
-    inset: 0; /* shorthand for top, right, bottom, left 0 */
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
-    touch-action: none; /* Importante para o touch funcionar sem rolagem/zoom nativo */
-    z-index: 1; /* Base para o wrapper */
+  position: absolute;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  touch-action: none;
+  z-index: 1;
+
+  background: radial-gradient(circle at center, #0b1a1f 0%, #070f11 100%);
+  backdrop-filter: blur(2px);
 }
 
+#canvas-wrapper::before {
+  content: "";
+  position: absolute;
+  inset: -50%;
+  background: radial-gradient(circle, rgba(0, 255, 240, 0.04) 0%, transparent 70%),
+              radial-gradient(circle, rgba(0, 255, 180, 0.03) 20%, transparent 80%);
+  animation: luzCanvasGirando 30s linear infinite;
+  z-index: 0;
+  pointer-events: none;
+}
+
+@keyframes luzCanvasGirando {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(180deg) scale(1.05);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+/* ============================== */
+/* ÁREA TRANSFORMADA (zoom e pan) */
 #canvas-transformado {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(1);
-    transform-origin: center center;
-    transition: transform 0.08s ease-out;
-    will-change: transform;
-    z-index: 2; /* Acima do wrapper */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(1);
+  transform-origin: center center;
+  transition: transform 0.08s ease-out;
+  will-change: transform;
+  z-index: 2;
 }
 
-/* O CANVAS REAL COM TAMANHO DEFINIDO PELO USUÁRIO */
+/* ============================== */
+/* O CANVAS VISUAL PRINCIPAL */
 #canvas-container {
-    background-color: #fff;
-    background-image: linear-gradient(#ccc 1px, transparent 1px),
-                      linear-gradient(to right, #ccc 1px, transparent 1px);
-    background-size: 30px 30px;
-    box-shadow: 0 0 0 2px #aaa;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    box-sizing: content-box; /* A borda e padding não aumentam o tamanho total */
-    overflow: hidden;
-    transform-origin: center center;
-    transition: transform 0.05s ease-out;
-    will-change: transform;
-    z-index: 3; /* Acima de canvas-transformado, mas abaixo dos objetos */
-    scrollbar-width: none; /* Firefox */
+  background-color: #ffffff;
+  background-image: 
+    linear-gradient(#cccccc 1px, transparent 1px),
+    linear-gradient(to right, #cccccc 1px, transparent 1px);
+  background-size: 30px 30px;
+  box-shadow: 0 0 0 2px rgba(0, 255, 240, 0.2), 0 0 20px rgba(0, 255, 180, 0.08);
+  border-radius: 4px;
+  
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-sizing: content-box;
+  overflow: hidden;
+  transform-origin: center center;
+  transition: transform 0.05s ease-out;
+  will-change: transform;
+  z-index: 3;
+  scrollbar-width: none;
 }
-#canvas-container::-webkit-scrollbar { /* Chrome, Safari */
-    display: none;
+
+#canvas-container::-webkit-scrollbar {
+  display: none;
 }
 
 
 /* ======================================================================= */
-/* OBJETOS NO CANVAS (CAMADAS VISUAIS)                                     */
-/* Elementos que representam texto, imagens, formas no editor.             */
+/* OBJETOS NO CANVAS (CAMADAS VISUAIS) */
 /* ======================================================================= */
 .objeto-edicao {
-    position: absolute; /* Essencial para left/top funcionarem */
-    user-select: none;
-    touch-action: none; /* Permite arrastar sem conflito com scroll nativo */
-    display: inline-block;
-    vertical-align: top;
-    z-index: 10; /* Acima do canvas-container */
-    /* Adicionar para depuração temporária para ver o tamanho do objeto */
-    /* border: 1px solid red; */
+  position: absolute;
+  user-select: none;
+  touch-action: none;
+  display: inline-block;
+  vertical-align: top;
+  z-index: 10;
+  transition: box-shadow 0.2s ease;
 }
 
+.objeto-edicao:focus-within,
+.objeto-edicao.selecionado {
+  box-shadow: 0 0 12px rgba(0, 255, 240, 0.15),
+              0 0 24px rgba(0, 255, 180, 0.12);
+}
+
+/* Imagens dentro de objetos */
 .objeto-edicao img {
-    user-drag: none; /* Impede arrastar a imagem nativamente */
-    -webkit-user-drag: none;
-    pointer-events: auto; /* Garante que a imagem receba eventos, apesar do pai */
+  user-drag: none;
+  -webkit-user-drag: none;
+  pointer-events: auto;
+  border-radius: 6px;
+  object-fit: fill !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
 }
-
 
 /* ======================================================================= */
-/* CONTORNO DE SELEÇÃO E ALÇAS (HANDLES)                                   */
-/* O quadrado de seleção e os pontos de redimensionamento/rotação.         */
+/* CONTORNO DE SELEÇÃO E ALÇAS — VISUAL INTEGRADO AO MODAL                */
 /* ======================================================================= */
 #contorno-selecao {
-    position: absolute;
-    /* pointer-events: none; REMOVIDO! As alças terão pointer-events: auto */
-    border: 2px solid #00e676; /* Linha: sólida + levemente brilhante */
-    border-radius: 6px;
-    box-shadow: 0 0 6px rgba(0, 230, 150, 0.6); /* Efeito glow sutil */
-    transition: opacity .15s ease, box-shadow .15s ease;
-    opacity: 0.95;
-    box-sizing: border-box; /* Borda e padding não aumentam o tamanho total */
-    z-index: 20; /* Fica por cima dos objetos e do canvas */
-    pointer-events: none; /* Contorno em si não é clicável, só as alças */
+  position: absolute;
+  border: 2.5px solid #008b7a; /* Tom mais escuro, técnico e sério do mesmo ciano */
+  border-radius: 10px;
+  background: rgba(7, 37, 46, 0.18); /* fundo mais visível */
+  box-shadow:
+    0 0 5px rgba(0, 139, 122, 0.25),
+    0 0 10px rgba(0, 139, 122, 0.08);
+  pointer-events: none;
+  z-index: 20;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* Alças customizadas — estilo “nó” circular */
+
+/* ======================================================================= */
+/* CONTORNO OBJETO DE TEXTO               */
+/* ======================================================================= */
+
+.contorno-edicao.tipo-texto {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  box-sizing: border-box;
+}
+
+/* Estilo direto para o texto dentro */
+.contorno-edicao.tipo-texto .conteudo {
+  transform-origin: top left;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+
+
+
+/* ======================================================================= */
+/* ALÇAS — NO MESMO ESTILO VISUAL DO MODAL                                */
+/* ======================================================================= */
 #contorno-selecao .handle-tl,
 #contorno-selecao .handle-tr,
 #contorno-selecao .handle-bl,
 #contorno-selecao .handle-br,
 #contorno-selecao .handle-rot {
-    width: 14px; /* Tamanho visual da alça */
-    height: 14px;
-    border-radius: 50%;
-    background: #00e676;
-    border: 2px solid #121212; /* Bordinha interna escura p/ contraste */
-    position: absolute;
-    box-shadow: 0 0 4px rgba(0, 230, 150, 0.8);
-    cursor: grab; /* Cursor padrão para indicar arrasto */
-    pointer-events: all; /* Essencial: Garante que as alças RECEBAM eventos de clique */
-    padding: 8px; /* Aumenta a área clicável da alça sem mudar o tamanho visual */
-    box-sizing: content-box; /* Garante que o padding não afete width/height */
+  width: 14px;
+  height: 14px;
+  padding: 10px;                                      /* área de toque generosa */
+  box-sizing: content-box;
+  position: absolute;
+  border-radius: 10px;
+  background-color: rgba(7, 37, 46, 0.6);             /* fundo escuro translúcido */
+  border: 1.5px solid rgba(0, 238, 211, 0.4);         /* borda ciano-esverdeada */
+  box-shadow:
+    0 0 8px #00eed344,
+    0 0 12px rgba(0, 238, 211, 0.1),
+    inset 0 0 2px rgba(255, 255, 255, 0.03);          /* profundidade interna */
+  backdrop-filter: blur(8px);                         /* blur mantido nas alças */
+  -webkit-backdrop-filter: blur(8px);
+  cursor: grab;
+  pointer-events: all;
+  transition: all 0.25s ease;
 }
 
-/* Posições das alças (offset do centro da alça em relação ao contorno) */
+/* ======================================================================= */
+/* POSICIONAMENTO DAS ALÇAS                                               */
+/* ======================================================================= */
 .handle-tl { top: -9px; left: -9px; cursor: nwse-resize; }
 .handle-tr { top: -9px; right: -9px; cursor: nesw-resize; }
 .handle-bl { bottom: -9px; left: -9px; cursor: nesw-resize; }
 .handle-br { bottom: -9px; right: -9px; cursor: nwse-resize; }
 
-/* Alça de rotação — pino azul estiloso */
+/* ALÇA DE ROTAÇÃO — VARIAÇÃO EM AZUL TÉCNICO                             */
 #contorno-selecao .handle-rot {
-    background: #2196f3; /* Cor azul para rotação */
-    box-shadow: 0 0 4px rgba(33,150,243,0.8);
-    top: -32px; /* Posiciona acima do contorno */
-    left: 50%;
-    transform: translateX(-50%); /* Centraliza horizontalmente */
-    cursor: grab; /* Cursor de arrasto */
+  top: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background-color: rgba(7, 37, 46, 0.6);
+  border: 1.5px solid rgba(80, 180, 255, 0.4);
+  box-shadow:
+    0 0 8px rgba(80, 180, 255, 0.2),
+    inset 0 0 2px rgba(255, 255, 255, 0.05);
 }
 
-/* Esconde o contorno quando não estiver em uso */
+/* ======================================================================= */
+/* OCULTAR CONTORNO QUANDO NÃO ESTIVER ATIVO                              */
+/* ======================================================================= */
 #contorno-selecao.oculto {
-    opacity: 0;
-    pointer-events: none; /* Desativa eventos quando oculto */
+  opacity: 0;
+  pointer-events: none;
 }
 
 
-
-
-
-
-/* 🔒 Remove barras visuais no canva (como no mobile) */
-#canvas-container {
-  scrollbar-width: none;            /* Firefox */
-  z-index: 9999;
-}
-#canvas-container::-webkit-scrollbar { /* Chrome, Safari */
-  display: none;
-}
-
-/* Barra inferior com botões de ferramenta */
+/* ======================================================================= */
+/* BARRA INFERIOR DE FERRAMENTAS */
+/* ======================================================================= */
 #barra-ferramentas {
   display: flex;
   justify-content: space-around;
-  background-color:  #1a1a1a;
+  background-color: rgba(7, 37, 46, 0.85);
+  border-top: 1px solid rgba(0, 255, 240, 0.08);
   padding: 12px;
   min-height: 60px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 -1px 10px rgba(0, 255, 240, 0.05);
+  
+  
 }
 
-/* Botões da barra de ferramentas */
 .botao-ferramenta {
-  background-color: #333;
-  color: white;
-  border: none;
+  background-color: rgba(0, 255, 240, 0.05);
+  color: #00fff0;
+  border: 1px solid rgba(0, 255, 240, 0.2);
   padding: 10px 20px;
-  border-radius: 10px;
+  border-radius: 12px;
   font-size: 14px;
   cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(4px);
 }
-/* Oculta qualquer elemento com essa classe */
-/* Classe para esconder completamente elementos */
+
+.botao-ferramenta:hover {
+  background-color: rgba(0, 255, 240, 0.1);
+  box-shadow:
+    0 0 6px rgba(0, 255, 240, 0.2),
+    0 0 10px rgba(0, 255, 180, 0.15);
+}
+
+/* ======================================================================= */
+/* REMOÇÃO DE SCROLL E EXTRAS */
+/* ======================================================================= */
+#canvas-container {
+  scrollbar-width: none;
+  z-index: 9999;
+}
+#canvas-container::-webkit-scrollbar {
+  display: none;
+}
+
 .oculto {
   display: none !important;
 }
@@ -525,22 +1031,33 @@ footer {
   user-select: none;
 }
 
-/* Botão do topo (ex: Menu) */
 .botao-topo {
-  background-color: #136b38;
-  color: white;
-  border: none;
-  padding: 8px 14px;
+  background: transparent;
+  border: 1px solid rgba(0, 229, 221, 0.25); /* cor intermediária */
+  color: #00e5dd; /* tom entre o verde e o ciano */
+  padding: 8px 12px;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 20px;
+  font-weight: bold;
   cursor: pointer;
-  transition: background 0.3s;
+  transition: background 0.25s, color 0.25s, transform 0.2s;
   user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  line-height: 0;
+  box-shadow: 0 0 6px rgba(0, 229, 221, 0.08);
 }
 
 .botao-topo:hover {
-  background-color: #4caf50;
+  background: rgba(0, 229, 221, 0.06);
+  color: #ffffff;
+  transform: scale(1.04);
 }
+
+
 
 /* ================================ */
 /*      MENU LATERAL (visual)       */
@@ -624,8 +1141,8 @@ footer {
 }
 
 /* botão do menu lateral */
-.botao-menu-lateral{
-  background: #136b38;           /* verde padrão MAX */
+.botao-menu-lateral {
+  background: linear-gradient(to right, #009e73, #0091b2); /* degradê verde-ciano MAX */
   color: #fff;
   border: none;
   padding: 10px 12px;
@@ -633,16 +1150,19 @@ footer {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;                      /* espaço ícone+texto */
+  gap: 6px;
   font-size: 14px;
   cursor: pointer;
-  transition: background .25s, transform .15s;
+  transition: background 0.25s, transform 0.15s, box-shadow 0.2s;
+  box-shadow: 0 0 6px rgba(0, 255, 170, 0.15);
 }
 
-.botao-menu-lateral:hover{
-  background: #4caf50;
-  transform: translateY(-2px);   /* micro-efeito de “levantar” */
+.botao-menu-lateral:hover {
+  background: linear-gradient(to right, #00b885, #00a2cc); /* efeito hover com brilho suave */
+  transform: translateY(-2px);
+  box-shadow: 0 0 10px rgba(0, 255, 170, 0.3);
 }
+
 
 .fechar-menu {
   position: absolute;
@@ -708,7 +1228,7 @@ footer {
 /*     BOTÕES DO MENU LATERAL      */
 /* ================================ */
 .botao-menu-lateral {
-  background-color: #333;
+  background: linear-gradient(to right, #009e73, #0091b2); /* 💚 novo degradê futurista */
   color: white;
   border: none;
   padding: 10px 16px;
@@ -717,12 +1237,15 @@ footer {
   width: 100%;
   font-size: 15px;
   cursor: pointer;
-  transition: background 0.3s;
+  transition: background 0.3s, transform 0.2s, box-shadow 0.2s;
   user-select: none;
+  box-shadow: 0 0 6px rgba(0, 255, 170, 0.15);
 }
 
 .botao-menu-lateral:hover {
-  background-color: #4caf50;
+  background: linear-gradient(to right, #00b885, #00a2cc);
+  transform: translateY(-2px);
+  box-shadow: 0 0 10px rgba(0, 255, 170, 0.3);
 }
 
 /* ================================ */
@@ -778,6 +1301,7 @@ body {
 /*     ABA LATERAL DE CAMADAS      */
 /*        COM GLASSMORPHISM        */
 /* ================================ */
+
 .painel {
   position: fixed;
   top: 0;
@@ -785,18 +1309,17 @@ body {
   width: 260px;
   height: 100vh;
 
-  /* Fundo semitransparente com efeito vidro */
-  background-color: rgba(30, 30, 30, 0.6); /* transparência maior */
-  backdrop-filter: blur(8px);              /* efeito de desfoque */
-  -webkit-backdrop-filter: blur(8px);      /* suporte para Safari */
+  background-color: rgba(20, 20, 20, 0.55); /* vidro escuro translúcido */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 
-  border-left: 1px solid rgba(255, 255, 255, 0.1);
-  z-index: 1000;
+  border-left: 1px solid rgba(0, 255, 170, 0.08); /* borda verde sutil */
+  box-shadow: -4px 0 8px rgba(0, 255, 170, 0.1);
   padding: 16px;
-  box-shadow: -2px 0 5px rgba(0,0,0,0.2);
+  z-index: 1000;
   overflow-y: auto;
-  transition: transform 0.3s ease;
   transform: translateX(100%);
+  transition: transform 0.3s ease;
   user-select: none;
 }
 
@@ -818,29 +1341,40 @@ body {
 }
 
 .fechar-painel:hover {
-  color: white;
+  color: #fff;
 }
 
 /* Título do painel */
 .painel h3 {
-  color: white;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
+  font-size: 20px;
+  font-weight: bold;
   user-select: none;
+  background: linear-gradient(to right, #009e73, #0091b2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 4px rgba(0, 255, 170, 0.2);
 }
 
-/* Botão flutuante de camadas */
-#abrir-camadas {
-	background: #4CAF50;
-	margin-left: auto; /* joga o botão para o lado direito da barra */
-	border: none;
-	padding: 8px;
-	border-radius: 8px;
-	cursor: pointer;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	transition: background 0.2s;
 
+/* Botão flutuante para abrir camadas */
+#abrir-camadas {
+  background: linear-gradient(to right, #009e73, #0091b2); /* tons mais escuros */
+  margin-left: auto;
+  border: none;
+  padding: 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s, transform 0.2s;
+  box-shadow: 0 0 6px rgba(0, 255, 170, 0.1); /* brilho reduzido */
+}
+
+#abrir-camadas:hover {
+  background: linear-gradient(to right, #00c896, #00aaff);
+  transform: scale(1.05);
 }
 
 
@@ -854,13 +1388,17 @@ body {
 
 /*  LISTA DE CAMADAS */
 #lista-camadas {
-  max-height: calc(100vh - 80px); /* altura máxima visível da aba */
-  overflow-y: auto;               /* ativa rolagem interna */
-  padding-right: 6px;             /* espaço para scrollbar */
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+  padding-right: 6px;
   display: flex;
   flex-direction: column;
   gap: 10px;
   margin-top: 12px;
+  scrollbar-width: none;
+}
+#lista-camadas::-webkit-scrollbar {
+  display: none;
 }
 
 #aba-camadas {
@@ -881,7 +1419,7 @@ body {
 #lista-camadas {
   flex: 1;
   overflow-y: auto;
-  max-height: calc(100vh - 140px); /* Ajuste conforme altura do topo + rodapé */
+  max-height: calc(100vh - 140px);
   padding: 12px;
 }
 
@@ -890,43 +1428,28 @@ html, body {
   margin: 0;
   padding: 0;
   height: 100vh;
-  overflow: hidden; /* 🔒 Bloqueia qualquer rolagem */
+  overflow: hidden;
 }
-
-/* Oculta barras de rolagem forçadamente (padrão crossbrowser) */
 body::-webkit-scrollbar {
   display: none;
 }
 
-/* 🔒 Remove barras visuais das camadas (como no mobile) */
-#lista-camadas {
-  scrollbar-width: none;            /* Firefox */
-}
-#lista-camadas::-webkit-scrollbar { /* Chrome, Safari */
-  display: none;
-}
-
-
 /* Estilo base de cada camada na lista */
 .item-camada {
-  display: flex; /* Coloca todos os elementos em linha */
-  align-items: center; /* Alinha verticalmente no centro */
-  justify-content: space-between; /* Espaça os itens igualmente */
-  background-color: #1e1e1e; /* Fundo escuro para combinar com o tema */
-  padding: 8px; /* Espaçamento interno */
-  margin-bottom: 6px; /* Espaço entre uma camada e outra */
-  border-radius: 6px; /* Arredonda os cantos */
-  gap: 8px; /* Espaço entre os itens internos */
-  color: white; /* Cor do texto */
-  font-size: 14px; /* Tamanho da fonte padrão 
- */
-  position: relative;/* Garante que os itens de camada tenham posição relativa para posicionar o tipo no topo */
-
-   padding-top: 12px; /* Espaço para o tipo flutuante */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #1e1e1e;
+  padding: 12px 8px 8px;
+  margin-bottom: 6px;
+  border-radius: 6px;
+  gap: 8px;
+  color: white;
+  font-size: 14px;
+  position: relative;
 }
 
-
-/* Container de informações da camada (tipo + nome) */
+/* Container de informações da camada */
 .info-camada {
   display: flex;
   flex-direction: column;
@@ -935,8 +1458,7 @@ body::-webkit-scrollbar {
   overflow: hidden;
 }
 
-
-/* 🟨 Nome da camada com limite de 2 linhas */
+/* Nome da camada */
 .nome-camada {
   font-size: 11px;
   padding: 0 6px;
@@ -944,19 +1466,13 @@ body::-webkit-scrollbar {
   white-space: normal;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-height: 2.4em; /* 2 linhas */
-  text-align: center;
-  flex: 1;
-  color: white;
-  margin: 0 6px;
-  white-space: normal;      /* 🔄 Permite quebra de linha */
-  word-break: break-word;   /* 🔄 Quebra palavras longas */
+  max-height: 2.4em;
   text-align: left;
-  line-height: 1.1;
+  word-break: break-word;
+  color: white;
 }
 
-
-/* ✅ Tipo da camada: flutuando no topo, centralizado, sem atrapalhar os elementos internos */
+/* Tipo da camada no topo */
 .tipo-camada-topo {
   position: absolute;
   top: -8px;
@@ -964,18 +1480,23 @@ body::-webkit-scrollbar {
   transform: translateX(-50%);
   font-size: 10px;
   font-weight: bold;
-  background-color: #4caf50;
+  background: linear-gradient(to right, #00ffaa, #00c8ff);
   color: black;
   padding: 2px 6px;
   border-radius: 4px;
   z-index: 10;
   pointer-events: none;
-  opacity: 0.9;
+  opacity: 0.95;
+  box-shadow: 0 0 4px rgba(0, 255, 170, 0.25);
+
+  /* 🔒 Impede quebra de linha */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90%;
 }
 
-
-/* 🟦 Miniatura da camada com tamanho fixo */
-/* Miniatura padrão */
+/* Miniatura da camada */
 .miniatura-camada {
   width: 40px;
   height: 40px;
@@ -991,10 +1512,12 @@ body::-webkit-scrollbar {
   justify-content: center;
   flex-shrink: 0;
 }
-/* Miniatura para camada de texto */
+
+/* Miniatura texto */
 .miniatura-camada.miniatura-texto {
   background-color: #222;
 }
+
 /* Texto dentro da miniatura */
 .preview-texto {
   font-size: 10px;
@@ -1002,30 +1525,26 @@ body::-webkit-scrollbar {
   text-align: center;
   padding: 2px;
   word-break: break-word;
-  white-space: normal;
   line-height: 1.2;
   max-width: 100%;
   max-height: 100%;
   overflow: hidden;
 }
 
-
-/* Miniatura com forma geométrica (quadrado verde de exemplo) */
+/* Miniatura com forma geométrica */
 .miniatura-forma {
   display: flex;
   align-items: center;
   justify-content: center;
 }
-
 .forma-exemplo {
   width: 22px;
   height: 22px;
-  background-color: #4CAF50; /* 💚 Verde padrão */
-  border-radius: 0px;         /* 🔲 Arredondamento leve (ajustável) */
+  background-color: #00ffaa;
+  border-radius: 2px;
 }
 
-
-
+/* Estilo ao passar o mouse */
 .camada-item {
   padding: 8px 12px;
   border-radius: 8px;
@@ -1037,154 +1556,199 @@ body::-webkit-scrollbar {
   align-items: center;
   justify-content: space-between;
 }
-
 .camada-item:hover {
   background: rgba(255, 255, 255, 0.08);
 }
 
-.camada-item. {
-  background: rgba(0, 255, 128, 0.15); /* 💚 verde clarinho */
-  border: 1px solid #00ff80;
-}
-
-
-/* ============================= */
-/*      SELEÇÃO DA CAMADA        */
-/* ============================= */
+/* Camada ativa */
 .item-camada.ativa {
   background-color: rgba(0, 255, 128, 0.08);
-  outline: 2px solid #00ff80;
+  outline: 2px solid #00ffaa;
   border-radius: 8px;
 }
 
 
+/* ============================= */
+/* 🎯 EDITOR DE TEXTO (camada de texto) */
+/* ============================= */
 
-/* ============================= */
-/* 🎯 MODAL DE TEXTO (Isolado) */
-/* ============================= */
-.modal-texto {
+#tela-edicao-texto {
   position: fixed;
-  top: 0; left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(0, 0, 0, 0.5); /* Fundo escurecido */
+  inset: 0;
+  z-index: 99999;
+  backdrop-filter: blur(10px);
+  background: rgba(0, 0, 0, 0.53);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
+  flex-direction: column;
 }
 
-.conteudo-modal-texto {
-  background-color: #1e1e1e;
-  padding: 24px;
-  border-radius: 10px;
-  box-shadow: 0 0 20px rgba(0,0,0,0.6);
-  max-width: 90%;
-  width: 400px;
-  text-align: center;
-}
 
-#input-texto {
-  width: 100%;
-  padding: 10px;
-  margin-top: 10px;
-  font-size: 16px;
-  border-radius: 6px;
-  border: none;
-  background: #2a2a2a;
-  color: white;
-}
-
-.botoes-modal-texto {
-  margin-top: 16px;
+/* Tela escura com efeito vidro */
+.botoes-edicao-texto {
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
-  justify-content: center;
-  gap: 12px;
+  gap: 20px;
+  z-index: 10;
 }
 
-.botoes-modal-texto button {
-  padding: 8px 14px;
-  border: none;
-  border-radius: 6px;
-  font-weight: bold;
-  cursor: pointer;
-  background-color: #4caf50;
+/* === Vidro de fundo da tela de edição de texto ===================== */
+#fundo-glass{
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,0.0.5);   /* ↓ 6 % de opacidade (antes 10 %)  */
+  backdrop-filter:blur(2px);     /* ↓ blur levemente menor           */
+  -webkit-backdrop-filter:blur(3px);
+  z-index:0;
+}
+
+/* Campo de texto no centro */
+#texto-editavel {
+  position: relative;
+  z-index: 1;
+  max-width: 80%;
+  min-width: 300px;
+  min-height: 150px;
+  font: 400 28px/1.4 'Poppins', sans-serif;
   color: white;
-  transition: background-color 0.3s ease;
+  outline: none;
+  white-space: pre-wrap;
+  text-align: center;
+  margin: 100px auto 0;
 }
 
-.botoes-modal-texto button:hover {
-  background-color: #45a045;
+/* === Botão futurista verde-ciano (versão escurecida) =============== */
+#botao-confirmar-texto{
+  position:absolute;
+  bottom:30px;
+  left:50%;
+  transform:translateX(-50%);
+  padding:14px 32px;
+  font-size:16px;
+  font-weight:600;
+  border:none;
+  border-radius:14px;
+  text-transform:uppercase;
+  letter-spacing:1px;
+  cursor:pointer;
+  backdrop-filter:blur(6px);
+  overflow:hidden;
+  z-index:99999;
+  transition:all .3s ease;
+  /* estado neutro ⇒ cinza translúcido */
+  background:rgba(40,40,40,.35);
+  color:#d0d0d0;
+  box-shadow:0 0 6px rgba(0,255,200,.12);
+}
+#botao-confirmar-texto::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:rgba(0,255,200,.10);
+  opacity:0;
+  transition:.3s ease;
+  z-index:-1;
+}
+#botao-confirmar-texto:hover::before{opacity:1;}
+
+/* — Confirmar — (verde-ciano escurecido) */
+#botao-confirmar-texto.confirmar{
+  background:linear-gradient(135deg,#00d66f,#00c2e6); /* <- mais escuro */
+  color:#111;                                         /* texto quase preto */
+  box-shadow:
+    0 0 10px rgba(0,255,200,.28),
+    0 0 18px rgba(0,255,128,.18);
+}
+/* realce suave no hover */
+#botao-confirmar-texto.confirmar:hover {
+  transform: translateX(-50%) scale(1.10); /* Centraliza mesmo após o scale */
 }
 
-/* Ocultar qualquer modal */
-.oculto {
-  display: none;
+/* — Cancelar — */
+#botao-confirmar-texto.cancelar{
+  background:rgba(60,60,60,.28); /* cinza + escuro */
+  color:#c8c8c8;
+  box-shadow:0 0 6px rgba(0,255,200,.10);
 }
+#botao-confirmar-texto.cancelar:hover {
+  background: rgba(220, 50, 50, 0.25);
+  color: #fff;
+}
+
 
 
 /* =============================== */
 /* 🎯 MINIATURA DA CAMADA DE IMAGEM */
 /* =============================== */
 .miniatura-camada {
-  width: 36px;                  /* 📏 Tamanho fixo da miniatura */
+  width: 36px;
   height: 36px;
-  background-color: #2c2c2c;    /* 🎨 Cor de fundo padrão (caso não tenha imagem) */
-  border: 1px solid #444;       /* 🖌️ Borda leve para destacar a miniatura */
-  border-radius: 4px;           /* 🟦 Cantos levemente arredondados */
-  background-size: cover;       /* 📸 Faz a imagem preencher toda a miniatura */
-  background-position: center; /* 📍 Centraliza a imagem dentro da área */
-  background-repeat: no-repeat;/* ❌ Evita repetição da imagem */
+  background-color: rgba(20, 20, 20, 0.7);
+  border: 1px solid rgba(80, 255, 180, 0.3);
+  border-radius: 6px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  box-shadow: 0 0 6px rgba(0, 255, 170, 0.2);
 }
 
 
-/* ❌ Impede que ícones e textos das camadas sejam selecionados como texto */
+/* ❌ Impede seleção de texto nas camadas */
 .item-camada,
 .item-camada * {
   user-select: none;
 }
 
 
-/* Aplica a todos os ícones SVG usados nos botões de camadas e ícones de controle */
+/* Aplica a todos os ícones SVG usados */
 .icone-camada svg,
 .icone svg {
-  width: 20px;             /* 📏 Define a largura do ícone para 20 pixels */
-  height: 20px;            /* 📐 Define a altura do ícone para 20 pixels */
-  pointer-events: none;    /* 🚫 Impede que o usuário clique direto no SVG (o clique será no <span>) */
+  width: 20px;
+  height: 20px;
+  pointer-events: none;
+  fill: #00ffaa;
+  filter: drop-shadow(0 0 2px rgba(0, 255, 170, 0.4));
 }
 
 
-/* ================================
-📋 MENU FLUTUANTE DA CAMADA (⋮)
-================================ */
+/* ================================ */
+/* 📋 MENU FLUTUANTE DA CAMADA (⋮) */
+/* ================================ */
 .menu-opcoes {
   position: absolute;
-  z-index: 9999;                         /* 🔝 Fica acima de tudo */
-  background-color: #1e1e1e;             /* 🎨 Fundo escuro padrão */
-  border: 1px solid #4caf50;             /* 🟩 Borda verde elegante */
-  border-radius: 6px;                    /* 🔘 Cantos um pouco menores */
-  padding: 4px 0;                        /* 📦 Padding vertical mais compacto */
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4); /* 🌑 Sombra leve */
-  min-width: 140px;
-  max-width: 200px;     /* ✅ Limita o tamanho máximo */
-  width: fit-content;   /* ✅ Garante que não ultrapasse o necessário */
-  overflow-wrap: break-word; /* ✅ Quebra o texto dentro */
+  z-index: 9999;
+  background: rgba(20, 20, 20, 0.85);
+  border: 1px solid #00ffaa;
+  border-radius: 8px;
+  padding: 6px 0;
+  box-shadow: 0 6px 14px rgba(0, 255, 170, 0.12);
+  min-width: 150px;
+  max-width: 220px;
+  width: fit-content;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .menu-opcoes .opcao-menu {
   width: 100%;
   background: none;
   border: none;
-  color: white;
-  padding: 6px 10px;                     /* 📦 Menor espaçamento interno */
+  color: #fff;
+  padding: 8px 14px;
   text-align: left;
   cursor: pointer;
-  font-size: 13px;                       /* 🔤 Fonte mais enxuta */
-  line-height: 1.3;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.3s, color 0.3s;
 }
 
 .menu-opcoes .opcao-menu:hover {
-  background-color: #2f2f2f;             /* 🌘 Realce no hover */
+  background: rgba(0, 255, 170, 0.08);
+  color: #00ffaa;
 }
 
 
@@ -1264,32 +1828,56 @@ body::-webkit-scrollbar {
 
 
 
-
 /* ============================== */
-/*                                */
-/*     BOTÕES DE FERRAMENTAS      */
-/*                                */
+/*     BOTÕES DE FERRAMENTAS     */
 /* ============================== */
 
-
-/* Container geral da barra de ferramentas */
 #barra-ferramentas {
   display: flex;
   justify-content: space-between;
   align-items: center;
   position: fixed;
   bottom: 0;
-  width: 100%; 
- background: #2c2c2c;
-  color: #fff;
-  border-radius: 10px;
-  border: none;
-  padding: 8px 6px;
+  width: 100%;
+  background: rgba(20, 20, 20, 0.65); /* Fundo escuro translúcido */
+  border-top: 1px solid rgba(0, 255, 170, 0.08); /* Linha superior sutil */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 0 6px rgba(0, 255, 170, 0.12);
+  padding: 10px 12px;
   z-index: 20;
-  cursor: pointer;
-  color: #fff;
+  gap: 12px;
 }
 
+/* Scroll horizontal para os botões */
+#ferramentas-scroll {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex-grow: 1;
+  white-space: nowrap;
+  padding-left: 12px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+#ferramentas-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+#ferramentas-scroll:active {
+  cursor: grabbing;
+}
+
+.grupo-botoes {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+}
+
+/* Ícone acima do texto */
 .icone-botao {
   width: 24px;
   height: 24px;
@@ -1298,105 +1886,63 @@ body::-webkit-scrollbar {
   justify-content: center;
   align-items: center;
 }
+
+/* Texto dos botões */
 .texto-botao {
   font-size: 12px;
   text-align: center;
+  color: #ccc;
 }
 
-.botao-ferramenta {
-  display: flex;
-  flex-direction: column;      /* Ícone em cima, texto embaixo */
-  align-items: center;
-  justify-content: center;
-  width: 80px;
-  height: 60px;
-  flex-shrink: 0;
-  background: #2c2c2c;
-  color: #fff;
-  border: none;
-  padding: 10px 8px;
-  border-radius: 8px;
-  font-size: 14px;
-  white-space: nowrap;
-  transition: background 0.3s;
-  text-align: center; /* Segurança para alinhar textos internos */
-  user-select: none;
-}
-
-.botao-ferramenta:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-/* Botões de edição (usam o mesmo estilo visual dos botões principais) */
+/* Estilo base dos botões (criação/edição) */
+.botao-ferramenta,
 .botao-edicao {
-   display: flex;
-  flex-direction: column;      /* Ícone em cima, texto embaixo */
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   width: 80px;
   height: 60px;
   flex-shrink: 0;
-  background: #2c2c2c;
+  background: rgba(40, 40, 40, 0.5);
   color: #fff;
-  border: none;
+  border: 1px solid rgba(0, 255, 170, 0.15);
   padding: 10px 8px;
-  border-radius: 8px;
+  border-radius: 12px;
   font-size: 14px;
   white-space: nowrap;
-  transition: background 0.3s;
-  text-align: center; /* Segurança para alinhar textos internos */
+  transition: all 0.3s ease;
+  text-align: center;
   user-select: none;
+  box-shadow: 0 0 4px rgba(0, 255, 170, 0.1);
 }
 
-.botao-edicao :hover{
-  background: rgba(255, 255, 255, 0.1);
+.botao-ferramenta:hover,
+.botao-edicao:hover {
+  background: rgba(60, 60, 60, 0.6);
+  transform: scale(1.03);
+  box-shadow: 0 0 6px rgba(0, 255, 170, 0.25);
 }
 
-
-/* Botão fixo "Camadas" */
+/* Botão fixo “Camadas” */
 .botao-camadas {
-  background: #136b38;
+  background: linear-gradient(to right, #00ffaa, #00c8ff);
   color: #fff;
   border: none;
-  padding: 10px 16px;
-  border-radius: 8px;
+  padding: 10px 18px;
+  border-radius: 12px;
   font-weight: bold;
   margin-left: 12px;
   margin-right: 8px;
   white-space: nowrap;
   user-select: none;
-}
-.botao-camadas:hover{
-   background: #4caf50;
-}
-
-
-/* Área dos botões que rola horizontalmente (scroll invisível) */
-#ferramentas-scroll {
-  display: flex;              /* 🔧 Deixa os botões lado a lado */
-  gap: 12px;                  /* Espaçamento entre os botões */
-  overflow-x: auto;           /* Ativa scroll horizontal */
-  overflow-y: hidden;         /* Impede scroll vertical */
-  padding-left: 12px;
-  flex-grow: 1;
-  white-space: nowrap;        /* Impede quebra de linha */
-  scrollbar-width: none;      /* Oculta a barra no Firefox */
-  -webkit-overflow-scrolling: touch; /* Suaviza scroll em mobile */
+  box-shadow: 0 0 8px rgba(0, 255, 170, 0.2);
+  transition: 0.3s ease;
 }
 
-
-#ferramentas-scroll:active {
-  cursor: grabbing;                /* Quando estiver clicando/arrastando */
-}
-
-/* Oculta scrollbar no Chrome, Safari e Edge */
-#ferramentas-scroll::-webkit-scrollbar {
-  display: none;
-}
-
-.grupo-botoes {
-  display: flex;              /* 🔧 organiza os botões na horizontal */
-  gap: 12px;                  /* espaçamento entre eles */
+.botao-camadas:hover {
+  background: linear-gradient(to right, #00e07f, #00aaff);
+  box-shadow: 0 0 12px rgba(0, 255, 170, 0.35);
 }
 
 
@@ -1418,23 +1964,26 @@ button {
 
 
 /* ============================== */
-/* ⚠️ Estilo da notificação de erro */
+/* ⚠️ Estilo da notificação de erro (futurista) */
 /* ============================== */
-/* 🔴 Caixa de notificação de erro (inicialmente oculta) */
-/* Notificação animada */
 #notificacao-erro {
   position: fixed;
   left: 50%;
-  bottom: -100px; /* começa fora da tela */
+  bottom: -100px;
   transform: translateX(-50%);
-  background-color: #ff5555;
-  color: white;
-  padding: 12px 20px;
-  border-radius: 8px;
+  background: linear-gradient(135deg, #ff4c4c, #a80000);
+  box-shadow: 0 0 12px rgba(255, 0, 0, 0.4);
+  color: #fff;
+  padding: 14px 24px;
+  border-radius: 12px;
   font-size: 15px;
+  font-weight: bold;
   opacity: 0;
   transition: all 0.4s ease;
   z-index: 9999;
+  border: 1px solid rgba(255, 100, 100, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
 #notificacao-erro.ativa {
@@ -1444,24 +1993,25 @@ button {
 
 
 /* ============================== */
-/* ⚠️ Estilo da notificação de aviso */
+/* ⚠️ Estilo da notificação de aviso (futurista) */
 /* ============================== */
 .notificacao-aviso {
   position: fixed;
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
-  background-color: rgba(0, 255, 128, 0.12); /* 💚 vidro verde claro */
-  border: 1px solid #00ff80;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px); /* Safari */
+  background: rgba(0, 255, 170, 0.08);
+  border: 1px solid #00ffaa;
   color: white;
-  padding: 12px 20px;
-  border-radius: 10px;
+  padding: 14px 24px;
+  border-radius: 12px;
   font-size: 14px;
   font-weight: 500;
   z-index: 9999;
   display: none;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: 0 0 10px rgba(0, 255, 170, 0.3);
 }
 
 .notificacao-aviso.ativa {
@@ -1479,3 +2029,13 @@ button {
     transform: translateX(-50%) translateY(0);
   }
 }
+
+
+
+
+
+
+
+
+
+
