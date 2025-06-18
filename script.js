@@ -1,6 +1,72 @@
 document.addEventListener("DOMContentLoaded", () => {
   
   
+  
+  
+  
+  let intervaloEstrelas; // ID do intervalo
+  
+  
+  // Evita zoom via Ctrl + roda do mouse
+window.addEventListener('wheel', function(e) {
+  if (e.ctrlKey) {
+    e.preventDefault();
+  }
+}, { passive: false });
+
+// Evita zoom via Ctrl + '+', Ctrl + '-'
+window.addEventListener('keydown', function(e) {
+  if ((e.ctrlKey || e.metaKey) && (e.key === '+' || e.key === '-' || e.key === '=')) {
+    e.preventDefault();
+  }
+});
+
+  
+
+  // ===================================
+// 🌠 Efeito de estrelas cadentes na diagonal
+// ===================================
+
+	
+function criarEstrelaCadente() {
+  const container = document.getElementById('container-estrelas');
+  const estrela = document.createElement('div');
+  estrela.classList.add('estrela-cadente');
+
+ const posX = window.innerWidth + Math.random() * (window.innerWidth * 0.6); // 100% a 160% da largura
+const posY = -150 + Math.random() * (window.innerHeight * 0.2 + 150); // -150px a 20% da altura da tela
+
+  estrela.style.left = `${posX}px`;
+  estrela.style.top = `${posY}px`;
+
+  // Duração da animação (lenta)
+  const duracao = Math.random() * 4 + 4; // 4s a 8s
+  estrela.style.animationDuration = `${duracao}s`;
+
+  container.appendChild(estrela);
+
+  estrela.addEventListener('animationend', () => {
+    estrela.remove();
+  });
+}
+
+
+// Criar estrelas cadentes em intervalos aleatórios
+function iniciarEstrelasCadentes() {
+  if (intervaloEstrelas) clearInterval(intervaloEstrelas); // Garante que não duplica
+  intervaloEstrelas = setInterval(() => {
+    criarEstrelaCadente();
+  }, 1000);
+}
+
+function pararEstrelasCadentes() {
+  clearInterval(intervaloEstrelas);
+  intervaloEstrelas = null;
+  document.getElementById("container-estrelas").innerHTML = "";
+}
+
+
+
 
   // ================================================
 // ❌ FUNÇÃO PARA REMOVER A SELEÇÃO DA CAMADA ATIVA
@@ -24,6 +90,8 @@ function limparSelecaoDeCamadas() {
   // Oculta contorno visual
   removerContornoEdicao();
 }
+ 
+ 
  
   
 
@@ -176,6 +244,9 @@ mostrarContainer("principal");
 // 🧼 remove um fundo escuro do menu
 document.getElementById("fundo-escuro-menu").classList.remove("ativo");
 document.getElementById("fundo-escuro-menu").classList.add("oculto");
+
+// 🧼 remove o sistema e as estrelas
+pararEstrelasCadentes();
 
 setTimeout(() => {
   centralizarCanvasComZoom();
@@ -524,6 +595,8 @@ botaoVoltar.addEventListener("click", () => {
 
   // Limpa o canvas
   canvasContainer.innerHTML = '';
+ 
+ iniciarEstrelasCadentes();
 
   console.log("Voltando para a tela inicial.");
 });
@@ -638,68 +711,99 @@ botaoFecharCamadas.addEventListener("click", () => {
   painelCamadas.classList.remove("ativo");
   painelCamadas.classList.add("oculto");
 });
-  
-  
-  
-  
-  
-  
-// ==============================
-// 🎯 SISTEMA DE BOTÕES INFERIORES PARA CRIAR CAMADAS (MODULARIZADO SEM QUEBRAR NADA)
-// ==============================
+
+// ========================================
+//   FECHAR ABA DE CAMADAS CLICANDO FORA
+// ======================================== 
+  document.addEventListener('click', (evento) => {
+  const painel = document.querySelector('.painel');
+  const botao = document.querySelector('#abrir-camadas');
+
+  const clicouForaDoPainel = painel && !painel.contains(evento.target);
+  const clicouNoBotao = botao && botao.contains(evento.target);
+
+  const painelEstaAberto = painel && painel.classList.contains('ativo');
+
+  if (painelEstaAberto && clicouForaDoPainel && !clicouNoBotao) {
+    painel.classList.remove('ativo');
+  }
+});
 
   
   
- 
-  // FUNÇÃO DE CONTAINERS DOS BOTÔES
   
-  function mostrarContainer(tipo) {
-  // Oculta todos os grupos
+  
+  
+  // ==============================
+// 🎯 SISTEMA EDITOR DE TEXTO
+// ==============================
+
+// 👉 campos para camada de texto
+const telaEdicaoTexto  = document.getElementById("tela-edicao-texto");
+const textoEditavel    = document.getElementById("texto-editavel");
+const btnConfirmarText = document.getElementById("botao-confirmar-texto");
+
+const inputImagem = document.getElementById("input-imagem");
+
+// —————————————————————
+// Funções utilitárias
+// —————————————————————
+function abrirEditorTexto() {
+  textoEditavel.innerHTML = "";              // limpa campo
+  telaEdicaoTexto.classList.remove("oculto");
+  textoEditavel.focus();
+  MAXEditor.interacaoObjetoAtiva = true;      // trava pan/zoom se precisar
+  
+    // Inicializa como 'Cancelar'
+  btnConfirmarText.classList.remove("confirmar");
+  btnConfirmarText.classList.add("cancelar");
+  btnConfirmarText.innerText = "Cancelar";
+}
+
+function fecharEditorTexto() {
+  telaEdicaoTexto.classList.add("oculto");
+  MAXEditor.interacaoObjetoAtiva = false;
+}
+
+/* function criarObjetoTexto(conteudo) {
+  const id = Date.now().toString(36);
+
+  const obj = document.createElement("div");
+  obj.className = "objeto-edicao";
+  obj.dataset.id = id;
+  obj.dataset.tipo = "texto";
+  obj.style.left = "50%";
+  obj.style.top  = "50%";
+  obj.style.transform = "translate(-50%, -50%)";
+  obj.style.minWidth = "120px";
+
+  const span = document.createElement("div");
+  span.className = "conteudo-texto";
+  span.innerText = conteudo;
+  span.style.color = "#fff";
+  span.style.font = "400 28px/1.3 'Poppins', sans-serif";
+  span.style.whiteSpace = "pre-wrap";
+
+  obj.appendChild(span);
+  document.getElementById("canvas-transformado").appendChild(obj);
+
+  aplicarContornoEdicao(obj);
+  ObjetoInteracaoManager.ativar(obj);
+} */
+
+function mostrarContainer(tipo) {
   document.querySelectorAll('.grupo-botoes').forEach(container => {
     container.classList.add("oculto");
   });
-
-  // Mostra apenas o container correspondente
   const containerAtivo = document.getElementById(`container-${tipo}`);
   if (containerAtivo) {
     containerAtivo.classList.remove("oculto");
   }
 }
 
-  
-  
-  
-  
-  
-  
-  
-  
-// 👉 Modal e campos para camada de texto
-const modalTexto = document.getElementById("modal-texto");
-const inputTexto = document.getElementById("input-texto");
-const btnConfirmarTexto = document.getElementById("btn-confirmar-texto");
-const btnCancelarTexto = document.getElementById("btn-cancelar-texto");
-
-// 👉 Modal de imagem já está no HTML via input invisível
-const inputImagem = document.getElementById("input-imagem");
-
-// ==============================
-// 💡 Lista modular das ferramentas disponíveis
-// Cada ferramenta tem:
-// - nome identificador (ex: 'texto')
-// - função a executar quando clicado
-// ==============================
-
 const ferramentasDisponiveis = {
-  texto: () => {
-    // Abre o modal de texto
-    modalTexto.classList.remove("oculto");
-    inputTexto.value = "";
-    inputTexto.focus();
-  },
-
+  texto: () => abrirEditorTexto(),
   imagem: () => {
-    // Define o que acontece quando a imagem for selecionada
     inputImagem.onchange = (event) => {
       const arquivo = event.target.files[0];
       if (!arquivo) return;
@@ -707,76 +811,55 @@ const ferramentasDisponiveis = {
       const leitor = new FileReader();
       leitor.onload = () => {
         const imagemBase64 = leitor.result;
-
-        // Cria a nova camada de imagem (usando função que já existe)
         criarCamadaBase("imagem", arquivo.name, imagemBase64);
-        
-
-        // Limpa o campo para permitir selecionar o mesmo arquivo novamente
         inputImagem.value = "";
       };
-      leitor.readAsDataURL(arquivo); // Converte a imagem para base64
+      leitor.readAsDataURL(arquivo);
     };
-
-    // Abre o seletor de arquivos
     inputImagem.click();
   },
-
-  forma: () => {
-    // Cria uma nova camada de forma com nome padrão
-    criarCamadaBase("forma", "Forma");
-    
-  }
+  forma: () => criarCamadaBase("forma", "Forma")
 };
-
-// ==============================
-// 🧠 Detecta qual botão foi clicado e executa a ferramenta correta
-// ==============================
 
 document.querySelectorAll(".botao-ferramenta").forEach(botao => {
   botao.addEventListener("click", () => {
     const textoBotao = botao.textContent.toLowerCase();
-
-    // Verifica qual ferramenta foi clicada com base no texto
-    if (textoBotao.includes("texto")) {
-      ferramentasDisponiveis.texto();
-    } else if (textoBotao.includes("imagem")) {
-      ferramentasDisponiveis.imagem();
-    } else if (textoBotao.includes("forma")) {
-      ferramentasDisponiveis.forma();
-    }
+    if (textoBotao.includes("texto")) ferramentasDisponiveis.texto();
+    else if (textoBotao.includes("imagem")) ferramentasDisponiveis.imagem();
+    else if (textoBotao.includes("forma")) ferramentasDisponiveis.forma();
   });
 });
 
-// ==============================
-// ❌ BOTÃO "Cancelar" no modal de texto
-// ==============================
-btnCancelarTexto.addEventListener("click", () => {
-  modalTexto.classList.add("oculto");
+btnConfirmarText.addEventListener("click", () => {
+  if (!textoEditavel.innerText.trim()) return;
+	criarCamadaBase("texto", "Texto", textoEditavel.innerText.trim());
+	fecharEditorTexto();
 });
 
-// ==============================
-// ✅ BOTÃO "Confirmar" para adicionar o texto
-// ==============================
-btnConfirmarTexto.addEventListener("click", () => {
-  const texto = inputTexto.value.trim();
-  if (texto === "") return;
-
-  // Cria a camada de texto com o valor digitado
-  criarCamadaBase("texto", texto);
-  modalTexto.classList.add("oculto");
-});
-
-// ==============================
-// 🖱️ Clique fora do modal de texto fecha a caixa
-// ==============================
-modalTexto.addEventListener("click", (e) => {
-  if (e.target === modalTexto) {
-    modalTexto.classList.add("oculto");
-  }
-});
     
 
+// Verifica a cada digitação se há conteúdo
+textoEditavel.addEventListener("input", () => {
+  const temTexto = textoEditavel.innerText.trim().length > 0;
+
+  if (temTexto) {
+    btnConfirmarText.classList.remove("cancelar");
+    btnConfirmarText.classList.add("confirmar");
+    btnConfirmarText.innerText = "Confirmar";
+  } else {
+    btnConfirmarText.classList.remove("confirmar");
+    btnConfirmarText.classList.add("cancelar");
+    btnConfirmarText.innerText = "Cancelar";
+  }
+});
+
+// Lógica de clique
+btnConfirmarText.addEventListener("click", () => {
+  const texto = textoEditavel.innerText.trim();
+	fecharEditorTexto();
+ 
+  
+});
 
   
 
@@ -790,9 +873,23 @@ modalTexto.addEventListener("click", (e) => {
 // Referência à lista onde as camadas serão exibidas
 const listaCamadas = document.getElementById("lista-camadas");
 
+
+
+
+
+
+
+
+
 // ============================================
+// ============================================
+
 // 🧱 Função principal para criar uma nova camada na lista lateral
+
 // ============================================
+// ============================================
+
+
 function criarCamadaBase(tipo, nome, imagemBase64 = null) {
   // 🔧 Cria um novo elemento <div> representando uma camada
   const camada = document.createElement("div");
@@ -1076,10 +1173,11 @@ const objCriado = criarObjetoCanvas({
   tipo: tipo,
   nome: nome,
   dados: {
-    imagemBase64: imagemBase64
+    conteudo: tipo === "texto" ? imagemBase64 : null,
+    imagemBase64: tipo === "imagem" ? imagemBase64 : null
   }
 });
-  
+
 
 // Verifica se o objeto foi criado com sucesso antes de aplicar o contorno e iniciar arrasto
     if (objCriado) {
@@ -1260,7 +1358,8 @@ function criarObjetoCanvas(camada) {
   // 📦 Conteúdo do objeto (por tipo)
   // ============================
   if (camada.tipo === "texto") {
-    obj.textContent = camada.nome || "Texto";
+	 const texto = camada.dados?.conteudo || camada.nome || "Texto Exemplo";
+  obj.textContent = texto;
     obj.style.fontSize = "20px";
     obj.style.color = "#fff";
     obj.style.fontFamily = "sans-serif";
@@ -1321,7 +1420,8 @@ function criarObjetoCanvas(camada) {
   }
 
   // 🧩 Adiciona ao container visual
-  container.appendChild(obj);
+  document.getElementById("canvas-container").appendChild(obj);
+
   
   
 
@@ -1338,6 +1438,24 @@ return obj;
  
 
 }
+
+
+// ============================================
+// ACABA FUNÇÃO CRIAR CAMADA BASE
+// ============================================
+
+
+
+
+
+
+
+
+
+
+
+
+
   
 // =============================================
  // 🎯 Mostra contorno sobre o objeto selecionado
@@ -1346,6 +1464,13 @@ return obj;
 function aplicarContornoEdicao(objCriado) {
   const contorno = document.getElementById("contorno-selecao");
   const canvasContainer = document.getElementById("canvas-container");
+  
+  
+  // Verifica se é um objeto de texto
+const ehTexto = objCriado.classList.contains("objeto-texto");
+contorno.dataset.tipo = ehTexto ? "texto" : "outro";
+
+
 
   if (!objCriado || !contorno || !canvasContainer) return;
 
@@ -1368,17 +1493,34 @@ function aplicarContornoEdicao(objCriado) {
   contorno.style.top = `${top}px`;
   contorno.style.width = `${width}px`;
   contorno.style.height = `${height}px`;
+
+  // Aplica a rotação do objeto ao contorno também
+  const objTransform = window.getComputedStyle(objCriado).transform;
+  contorno.style.transform = objTransform;
+
+  // Remove classes anteriores
+  contorno.classList.remove("oculto", "tipo-texto");
+
+  // 🧠 DETECÇÃO de camada de texto
+  if (objCriado.classList.contains("objeto-texto")) {
+    contorno.classList.add("tipo-texto");
+
+    const conteudo = objCriado.querySelector(".conteudo"); // ⬅️ conteúdo real do texto
+    if (conteudo) {
+      // 🧠 Escala adaptativa
+      const escalaX = objCriado.offsetWidth / conteudo.offsetWidth;
+      const escalaY = objCriado.offsetHeight / conteudo.offsetHeight;
+      const escala = Math.min(escalaX, escalaY);
+
+      conteudo.style.transform = `scale(${escala})`;
+      conteudo.style.transformOrigin = "top left";
+    }
+  }
+
+  // contorno ativado
   contorno.classList.remove("oculto");
-  
-    // Obtém o estilo de transformação do objeto
-    const objTransform = window.getComputedStyle(objCriado).transform;
-    // Aplica a mesma transformação ao contorno para que ele gire junto
-    contorno.style.transform = objTransform; 
-
-    contorno.classList.remove("oculto");
-
-  console.log("🎯 Contorno centralizado:", { left, top, width, height });
 }
+
 
 
 // ===================================
@@ -1806,57 +1948,93 @@ const ObjetoInteracaoManager = {
             this.objetoAtual.style.top = `${this.startTop + dy}px`;
         } 
         else if (this.isRedimensionando) {
-            let newWidth = this.startWidth;
-            let newHeight = this.startHeight;
-            let newLeft = this.startLeft;
-            let newTop = this.startTop;
+    const tipo = this.contorno?.dataset?.tipo || "outro";
 
-            const dx = (clientX - this.startX) / currentScale;
-            const dy = (clientY - this.startY) / currentScale;
+    const dx = (clientX - this.startX) / currentScale;
+    const dy = (clientY - this.startY) / currentScale;
 
-            switch (this.handleAtivo) {
-                case 'handle-br': // Bottom Right
-                    newWidth = Math.max(20, this.startWidth + dx);
-                    newHeight = Math.max(20, this.startHeight + dy);
-                    newLeft = this.startLeft; // Posição fixa para redimensionar a partir da direita/baixo
-                    newTop = this.startTop;
-                    break;
-                case 'handle-bl': // Bottom Left
-                    newWidth = Math.max(20, this.startWidth - dx);
-                    newHeight = Math.max(20, this.startHeight + dy);
-                    newLeft = this.startLeft + dx; // Move a esquerda
-                    newTop = this.startTop;
-                    break;
-                case 'handle-tr': // Top Right
-                    newWidth = Math.max(20, this.startWidth + dx);
-                    newHeight = Math.max(20, this.startHeight - dy);
-                    newLeft = this.startLeft; // Posição fixa para redimensionar a partir da direita/cima
-                    newTop = this.startTop + dy; // Move o topo
-                    break;
-                case 'handle-tl': // Top Left
-                    newWidth = Math.max(20, this.startWidth - dx);
-                    newHeight = Math.max(20, this.startHeight - dy);
-                    newLeft = this.startLeft + dx; // Move a esquerda
-                    newTop = this.startTop + dy; // Move o topo
-                    break;
-            }
+    if (tipo === "texto") {
+  const delta = Math.max(dx, dy); // Pega o maior movimento para travar
+  const proporcao = (this.startWidth + delta) / this.startWidth;
 
-            this.objetoAtual.style.width = `${newWidth}px`;
-            this.objetoAtual.style.height = `${newHeight}px`;
-            this.objetoAtual.style.left = `${newLeft}px`;
-            this.objetoAtual.style.top = `${newTop}px`;
+  const novoWidth = this.startWidth * proporcao;
+  const novoHeight = this.startHeight * proporcao;
 
-            // Para imagens, redimensiona a imagem interna também para preencher o container
-            if (this.objetoAtual.dataset.tipo === "imagem") {
-                const img = this.objetoAtual.querySelector("img");
-                if (img) {
-                    img.style.width = "100%";
-                    img.style.height = "100%";
-                    img.style.maxWidth = "none";
-                    img.style.maxHeight = "none";
-                }
+  const centerX = this.startLeft + this.startWidth / 2;
+  const centerY = this.startTop + this.startHeight / 2;
+
+  const newLeft = centerX - (novoWidth / 2);
+  const newTop = centerY - (novoHeight / 2);
+
+  this.objetoAtual.style.width = `${novoWidth}px`;
+  this.objetoAtual.style.height = `${novoHeight}px`;
+  this.objetoAtual.style.left = `${newLeft}px`;
+  this.objetoAtual.style.top = `${newTop}px`;
+
+  // Escalona o texto
+  const fontSizeInicial = parseFloat(window.getComputedStyle(this.objetoAtual).fontSize);
+  const novoFontSize = fontSizeInicial * proporcao;
+  this.objetoAtual.style.fontSize = `${novoFontSize}px`;
+
+  // Aplica ao contorno
+  this.contorno.style.left = `${newLeft}px`;
+  this.contorno.style.top = `${newTop}px`;
+  this.contorno.style.width = `${novoWidth}px`;
+  this.contorno.style.height = `${novoHeight}px`;
+  return; // Importante: interrompe o restante para o texto ser especial
+}
+ else {
+        // Redimensionamento normal
+        let newWidth = this.startWidth;
+        let newHeight = this.startHeight;
+        let newLeft = this.startLeft;
+        let newTop = this.startTop;
+
+        switch (this.handleAtivo) {
+            case 'handle-br':
+                newWidth = Math.max(20, this.startWidth + dx);
+                newHeight = Math.max(20, this.startHeight + dy);
+                break;
+            case 'handle-bl':
+                newWidth = Math.max(20, this.startWidth - dx);
+                newHeight = Math.max(20, this.startHeight + dy);
+                newLeft = this.startLeft + dx;
+                break;
+            case 'handle-tr':
+                newWidth = Math.max(20, this.startWidth + dx);
+                newHeight = Math.max(20, this.startHeight - dy);
+                newTop = this.startTop + dy;
+                break;
+            case 'handle-tl':
+                newWidth = Math.max(20, this.startWidth - dx);
+                newHeight = Math.max(20, this.startHeight - dy);
+                newLeft = this.startLeft + dx;
+                newTop = this.startTop + dy;
+                break;
+        }
+
+        this.objetoAtual.style.width = `${newWidth}px`;
+        this.objetoAtual.style.height = `${newHeight}px`;
+        this.objetoAtual.style.left = `${newLeft}px`;
+        this.objetoAtual.style.top = `${newTop}px`;
+
+        if (this.objetoAtual.dataset.tipo === "imagem") {
+            const img = this.objetoAtual.querySelector("img");
+            if (img) {
+                img.style.width = "100%";
+                img.style.height = "100%";
+                img.style.maxWidth = "none";
+                img.style.maxHeight = "none";
             }
         }
+
+        this.contorno.style.width = `${newWidth + 16}px`;
+        this.contorno.style.height = `${newHeight + 16}px`;
+        this.contorno.style.left = `${newLeft - 8}px`;
+        this.contorno.style.top = `${newTop - 8}px`;
+    }
+}
+
         else if (this.isRotacionando) {
             const objRect = this.objetoAtual.getBoundingClientRect();
             // Calcular o centro do objeto em relação à tela visível
@@ -2025,5 +2203,15 @@ scrollArea.addEventListener('mousemove', (e) => {
   
      iniciarSistemaDeZoom()
 
+    
+	
+
+
+
+
+
+	
+	
+
+}); // Fim do DOMContentLoaded
   
-});
