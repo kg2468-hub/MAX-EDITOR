@@ -110,7 +110,7 @@ function limparSelecaoDeCamadas() {
 
   // Apenas uma mensagem no console para confirmar que o projeto foi carregado
 console.log("MAX Editor iniciado.");
-mostrarNotificacaoAviso(`SEJA MUITO BEM VINDO(A) 😁🎨`);
+mostrarNotificacaoAviso(`SEJA MUITO BEM VINDO(A) 🤩🎉`);
 
   
   // ==============================
@@ -251,6 +251,10 @@ canvasContainer.style.border = "1px solid #4caf50";
 
   // 🧠 Você pode salvar as infos do projeto aqui se quiser usar depois
   console.log(`Projeto "${nome}" criado com ${largura}x${altura}px`);
+mostrarNotificacaoAviso(`Projeto "${nome}" criado com ${largura}x${altura}px`);
+
+  
+  
   
   // 🧼 Limpa as camadas antigas da lista lateral
 document.querySelectorAll(".item-camada").forEach(camada => camada.remove());
