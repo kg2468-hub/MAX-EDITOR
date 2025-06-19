@@ -1,22 +1,37 @@
-// sw.js
-self.addEventListener("install", (e) => {
-  e.waitUntil(
-    caches.open("max-editor-cache").then((cache) =>
-      cache.addAll([
-        "/",                   // Página principal
-        "/index.html",
-        "/style.css",
-        "/script.js",
-        "/manifest.json",
-        "/B16F9EF0-7FBF-4459-AD61-8762E97BD37A.png",
-        "/B16F9EF0-7FBF-4459-AD61-8762E97BD37A.png"
-      ])
+const CACHE_NAME = 'max-editor-cache-v2'; // ← Altere o nome do cache a cada nova versão
+const urlsToCache = [
+  './',
+  './index.html',
+  './style.css',
+  './script.js',
+  './manifest.json',
+  './icone.png'
+];
+
+self.addEventListener('install', (event) => {
+  self.skipWaiting(); // ⚠️ Faz o novo SW assumir imediatamente
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache))
+  );
+});
+
+self.addEventListener('activate', (event) => {
+  // ⚠️ Remove caches antigos
+  event.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.map(key => {
+        if (key !== CACHE_NAME) {
+          return caches.delete(key);
+        }
+      }))
     )
   );
 });
 
-self.addEventListener("fetch", (e) => {
-  e.respondWith(
-    caches.match(e.request).then((response) => response || fetch(e.request))
+self.addEventListener('fetch', (event) => {
+  event.respondWith(
+    caches.match(event.request).then(response => {
+      return response || fetch(event.request);
+    })
   );
 });
