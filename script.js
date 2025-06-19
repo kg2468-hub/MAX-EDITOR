@@ -1,32 +1,16 @@
 document.addEventListener("DOMContentLoaded", () => {
   
-  function tentarFullscreen() {
-  const elem = document.documentElement;
-
-  if (elem.requestFullscreen) {
-    elem.requestFullscreen().catch((err) => {
-      console.warn("Falha ao entrar em tela cheia:", err);
-    });
-  } else {
-    console.log("Fullscreen não suportado neste navegador.");
-  }
-}
-
   
-// Corrige a altura visível da tela no celular (descontando a barra de URL)
-function atualizarAlturaReal() {
-  const vhReal = window.innerHeight * 0.01;
-  document.documentElement.style.setProperty('--vh', `${vhReal}px`);
+  
+  function ajustarAlturaVisivel() {
+  const vh = window.innerHeight * 0.01;
+  document.documentElement.style.setProperty('--vh', `${vh}px`);
 }
 
-// Chamada imediata ao carregar a página
-document.addEventListener('DOMContentLoaded', () => {
-  atualizarAlturaReal(); // ✅ Aplica ao carregar
-});
-
-// Atualiza também se o usuário gira o celular ou muda a tela
-window.addEventListener('resize', atualizarAlturaReal);
-
+// Executa ao carregar
+window.addEventListener('load', ajustarAlturaVisivel);
+// Executa se a tela for redimensionada (rotação, etc.)
+window.addEventListener('resize', ajustarAlturaVisivel);
   
   
   
@@ -166,7 +150,7 @@ botaoCriar.addEventListener("click", () => {
   document.getElementById("altura").value = 1080;
 
 
-tentarFullscreen();	
+
 
 
   // 👁️ Mostra o modal
