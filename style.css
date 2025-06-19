@@ -4,13 +4,9 @@
 }
 
 
-:root {
-  --altura-real: 100vh;
-}
-
-#tela-inicial, #tela-editor {
-  height: var(--altura-real);
-  overflow: hidden; /* impede scroll indesejado */
+#tela-inicial, #tela-editor, #canvas-wrapper, body {
+  height: var(--altura-visivel);
+  max-height: var(--altura-visivel);
 }
 
 
