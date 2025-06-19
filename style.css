@@ -4,6 +4,21 @@
 }
 
 
+:root {
+  --altura-real: 100vh;
+}
+
+#tela-inicial, #tela-editor {
+  height: var(--altura-real);
+  overflow: hidden; /* impede scroll indesejado */
+}
+
+
+
+
+
+
+
 /* =============================== */
 /* 🎨 Fundo com estrelas + chuva   */
 /* =============================== */
