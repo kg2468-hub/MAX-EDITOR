@@ -2,6 +2,21 @@ document.addEventListener("DOMContentLoaded", () => {
   
   
   
+  function ajustarAlturaReal() {
+  // Define a altura visível real do dispositivo
+  document.documentElement.style.setProperty('--altura-real', window.innerHeight + 'px');
+}
+
+// Ajusta na carga da página
+ajustarAlturaReal();
+
+// Também ajusta se o usuário mudar a orientação ou mexer na UI
+window.addEventListener('resize', ajustarAlturaReal);
+
+  
+  
+  
+  
   
   
   let intervaloEstrelas; // ID do intervalo
