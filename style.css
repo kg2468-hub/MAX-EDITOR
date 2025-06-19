@@ -4,14 +4,6 @@
 }
 
 
-#tela-inicial,
-#tela-editor,
-#canvas-wrapper,
-body {
-  height: calc(var(--vh, 1vh) * 100);
-  max-height: calc(var(--vh, 1vh) * 100);
-}
-
 
 
 
@@ -29,7 +21,7 @@ body, html {
   overflow: hidden; /* **Mantenha o overflow aqui** para controlar a rolagem da página inteira */
   font-family: 'Poppins', sans-serif;
   color: white;
-  height: 100%; /* **Mantenha o height aqui** para definir a altura da viewport */
+  height: calc(var(--vh, 1vh) * 100);
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -khtml-user-select: none;
@@ -43,7 +35,7 @@ body, html {
   top: 0;
   left: 0;
   width: 100vw; /* Ocupa 100% da largura da viewport */
-  height: 100vh; /* Ocupa 100% da altura da viewport */
+  height: calc(var(--vh, 1vh) * 100);
   
   /* MOVIDO A PARTIR DE body, html */
   background: radial-gradient(ellipse at center, #061821 0%, #020c11 100%),
@@ -142,7 +134,7 @@ body, html {
 #tela-inicial {
   display: flex; /* Transforma em contêiner flexível */
   flex-direction: column; /* Organiza os itens em coluna */
-  height: 100vh; /* Garante que ocupe a altura total da viewport */
+  height: calc(var(--vh, 1vh) * 100);
   width: 100vw; /* Garante que ocupe a largura total da viewport */
   justify-content: space-between; /* Distribui espaço entre os itens */
   align-items: center; /* Centraliza os itens horizontalmente */
@@ -731,7 +723,7 @@ footer {
 #tela-editor {
   display: relative;
   flex-direction: column;
-  height: 100%;
+  height: calc(var(--vh, 1vh) * 100);
   width: 100%;
   background: radial-gradient(circle at center, #0d1e22 0%, #0a1518 100%);
   overflow: hidden;
@@ -772,7 +764,7 @@ footer {
   position: absolute;
   inset: 0;
   width: 100vw;
-  height: 100vh;
+  height: calc(var(--vh, 1vh) * 100);
   overflow: hidden;
   touch-action: none;
   z-index: 1;
@@ -1084,7 +1076,7 @@ footer {
 
   position: fixed;
   top: 0;
-  height: 100vh;
+  height: calc(var(--vh, 1vh) * 100);
   background: rgba(30, 30, 30, 0.75);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -1302,7 +1294,7 @@ canvas {
 /* Impede rolagem da página */
 html, body {
   overflow: hidden;
-  height: 100%;
+  height: calc(var(--vh, 1vh) * 100);
   width: 100%;
   touch-action: none; /* desativa zoom com dois dedos no mobile */
 }
@@ -1442,7 +1434,7 @@ body {
 html, body {
   margin: 0;
   padding: 0;
-  height: 100vh;
+  height: calc(var(--vh, 1vh) * 100);
   overflow: hidden;
 }
 body::-webkit-scrollbar {
@@ -1597,6 +1589,7 @@ body::-webkit-scrollbar {
   align-items: center;
   justify-content: center;
   flex-direction: column;
+	height: calc(var(--vh, 1vh) * 100);
 }
 
 
