@@ -2,16 +2,15 @@ document.addEventListener("DOMContentLoaded", () => {
   
   
   
-  function ajustarAlturaReal() {
-  // Define a altura visível real do dispositivo
-  document.documentElement.style.setProperty('--altura-real', window.innerHeight + 'px');
+// Corrige a altura visível da tela no celular (descontando a barra de URL)
+function ajustarAlturaReal() {
+  const alturaVisivel = window.innerHeight;
+  document.documentElement.style.setProperty('--altura-visivel', `${alturaVisivel}px`);
 }
 
-// Ajusta na carga da página
-ajustarAlturaReal();
-
-// Também ajusta se o usuário mudar a orientação ou mexer na UI
 window.addEventListener('resize', ajustarAlturaReal);
+window.addEventListener('orientationchange', ajustarAlturaReal);
+document.addEventListener('DOMContentLoaded', ajustarAlturaReal);
 
   
   
@@ -284,7 +283,6 @@ setTimeout(() => {
 
 
 
-
 function iniciarSistemaDeZoom() {
     const wrapper = document.getElementById("canvas-wrapper");
     const transformado = document.getElementById("canvas-transformado");
@@ -304,6 +302,38 @@ function iniciarSistemaDeZoom() {
 
     const ZOOM_MIN = 0.1;
     const ZOOM_MAX = 10;
+	
+	
+	    // =============================================
+    // 📌 Função auxiliar para aplicar transformação
+    // Aplica escala e rotação ao objeto pelo ID
+    // =============================================
+    function aplicarTransformacaoNoObjeto(id, escala, rotacaoEmRad) {
+        const objeto = document.querySelector(`.objeto-edicao[data-id="${id}"]`);
+        if (!objeto) return;
+
+        const graus = rotacaoEmRad * (180 / Math.PI); // Converte para graus
+        objeto.style.transform = `scale(${escala}) rotate(${graus}deg)`; // Aplica as transformações via CSS
+    }
+
+    // =============================================
+    // 📌 Função para verificar se os dois dedos 
+    // estão tocando o objeto atualmente selecionado
+    // =============================================
+    function tocandoObjetoSelecionadoComDoisDedos(t1, t2) {
+        const objSelecionado = MAXEditor.camadaSelecionada;
+        if (!objSelecionado) return false;
+
+        const alvo1 = document.elementFromPoint(t1.clientX, t1.clientY);
+        const alvo2 = document.elementFromPoint(t2.clientX, t2.clientY);
+
+        // Ambos os dedos devem estar tocando o mesmo objeto selecionado
+        return [alvo1, alvo2].every(el =>
+            el?.classList.contains("objeto-edicao") &&
+            el.dataset.id === objSelecionado
+        );
+    }
+
 
     // Aplica a transformação visual (translate e scale) ao elemento 'canvas-transformado'
     // Usa as propriedades de MAXEditor (MAXEditor.panX, MAXEditor.panY, MAXEditor.zoom)
@@ -427,39 +457,44 @@ function iniciarSistemaDeZoom() {
 
     // Início do arrasto do canvas com o mouse (mousedown)
     // Este listener só é acionado SE o listener do 'canvas' (acima) NÃO interceptar o evento.
-    wrapper.addEventListener("mousedown", (e) => {
-        const contorno = document.getElementById("contorno-selecao");
-        
-        // Verifica 1: Há uma camada selecionada E o clique foi dentro da "margem de segurança" expandida do contorno?
-        // Se sim, NÃO inicie o arrasto do canvas.
-        let isWithinSafeMargin = false;
-        if (MAXEditor.camadaSelecionada && contorno && !contorno.classList.contains("oculto")) {
-            const contornoRect = contorno.getBoundingClientRect();
-            const margemSeguranca = 30; // Define o "raio" da zona de segurança (em pixels)
+wrapper.addEventListener("mousedown", (e) => {
+    const objSelecionado = MAXEditor.camadaSelecionada;
 
-            const expandedLeft = contornoRect.left - margemSeguranca;
-            const expandedTop = contornoRect.top - margemSeguranca;
-            const expandedRight = contornoRect.right + margemSeguranca;
-            const expandedBottom = contornoRect.bottom + margemSeguranca;
+    // Verifica se o clique foi em um objeto do canvas
+    const alvo = e.target.closest(".objeto-edicao");
 
-            if (e.clientX >= expandedLeft && e.clientX <= expandedRight &&
-                e.clientY >= expandedTop && e.clientY <= expandedBottom) {
-                isWithinSafeMargin = true;
-            }
+    if (alvo && alvo.dataset.id === objSelecionado) {
+        // Clicou sobre o objeto que está selecionado → não permite movimentar o canvas
+        return;
+    }
+
+    // Verifica se clicou dentro da margem de segurança do contorno
+    const contorno = document.getElementById("contorno-selecao");
+    let isWithinSafeMargin = false;
+    if (objSelecionado && contorno && !contorno.classList.contains("oculto")) {
+        const contornoRect = contorno.getBoundingClientRect();
+        const margemSeguranca = 30;
+
+        const dentro =
+            e.clientX >= contornoRect.left - margemSeguranca &&
+            e.clientX <= contornoRect.right + margemSeguranca &&
+            e.clientY >= contornoRect.top - margemSeguranca &&
+            e.clientY <= contornoRect.bottom + margemSeguranca;
+
+        if (dentro) {
+            isWithinSafeMargin = true;
         }
+    }
 
-        // Se o clique foi dentro da margem de segurança do contorno (e não foi no objeto/contorno direto,
-        // que seria capturado pelo listener do 'canvas' acima), NÃO inicie o arrasto do canvas.
-        if (isWithinSafeMargin) {
-            return; 
-        }
+    if (isWithinSafeMargin) return;
 
-        // Se nenhuma das condições acima for atendida, então é um clique válido para arrastar o canvas.
-        isArrastandoCanvas = true; // Ativa a flag de arrasto do canvas
-        ultimoXCanvas = e.clientX; // Armazena a posição X inicial do mouse
-        ultimoYCanvas = e.clientY; // Armazena a posição Y inicial do mouse
-        transformado.style.transition = "none"; // Desativa transição CSS para um movimento mais direto
-    });
+    // Se chegou até aqui, é um clique válido para arrastar o canvas
+    isArrastandoCanvas = true;
+    ultimoXCanvas = e.clientX;
+    ultimoYCanvas = e.clientY;
+    transformado.style.transition = "none";
+});
+
 
     // Movimento do mouse (mousemove) para arrastar o canvas
     document.addEventListener("mousemove", (e) => {
@@ -495,31 +530,50 @@ function iniciarSistemaDeZoom() {
 
     // Início do toque (touchstart) - Usado para identificar zoom de pinça ou ignorar toques de um dedo.
     wrapper.addEventListener("touchstart", (e) => {
-        // Para toques de UM DEDO: Se o toque for diretamente em um objeto ou handle, o ObjetoInteracaoManager vai lidar.
-        // Se for em uma área vazia do canvas (mas não no wrapper diretamente), o listener do 'canvas' (acima) lida com desseleção.
-        // Este listener do wrapper foca principalmente no gesto de dois dedos para zoom/pan do canvas.
-        
-        if (e.touches.length === 2) { // Detecta gesto de dois dedos (pinça)
-            const dx = e.touches[0].clientX - e.touches[1].clientX;
-            const dy = e.touches[0].clientY - e.touches[1].clientY;
-            distanciaInicialTouch = Math.hypot(dx, dy); // Calcula a distância inicial entre os dedos
+        if (e.touches.length === 2) {
+            const [t1, t2] = e.touches;
 
-            escalaInicialTouch = MAXEditor.zoom; // Armazena o zoom atual do MAXEditor como base para o zoom de pinça
-
-            ultimoXCanvas = (e.touches[0].clientX + e.touches[1].clientX) / 2; // Posição média dos dois dedos para pan inicial
-            ultimoYCanvas = (e.touches[0].clientY + e.touches[1].clientY) / 2;
-
-        } else if (e.touches.length === 1) { // Detecta gesto de um dedo
-            // Nenhuma ação aqui para um dedo no wrapper, o que permite que o ObjetoInteracaoManager (para objetos)
-            // ou o listener do 'canvas' (para desseleção) capturem o evento.
+            // ✅ Se os dois dedos estão tocando o objeto selecionado: entra em modo de transformação
+            if (tocandoObjetoSelecionadoComDoisDedos(t1, t2)) {
+                MAXEditor.interacaoDoisDedos = {
+                    modo: "objeto",
+                    id: MAXEditor.camadaSelecionada,
+                    distanciaInicial: Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY),
+                    anguloInicial: Math.atan2(t2.clientY - t1.clientY, t2.clientX - t1.clientX),
+                    escalaInicial: 1,
+                    rotacaoInicial: 0
+                };
+            } else {
+                // 🤏 Caso contrário, é gesto de pan + zoom do canvas
+                distanciaInicialTouch = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+                escalaInicialTouch = MAXEditor.zoom;
+                ultimoXCanvas = (t1.clientX + t2.clientX) / 2;
+                ultimoYCanvas = (t1.clientY + t2.clientY) / 2;
+                MAXEditor.interacaoDoisDedos = null;
+            }
         }
     }, { passive: false });
 
+
     // Movimento do toque (touchmove) - Para zoom de pinça e pan com dois dedos
     wrapper.addEventListener("touchmove", (e) => {
-        if (e.touches.length === 2 && distanciaInicialTouch !== null) {
+        if (e.touches.length === 2) {
             const [t1, t2] = e.touches;
 
+            // 🎯 Se estiver em modo de transformação de objeto (dois dedos sobre ele)
+            if (MAXEditor.interacaoDoisDedos?.modo === "objeto") {
+                const novaDist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+                const novoAng = Math.atan2(t2.clientY - t1.clientY, t2.clientX - t1.clientX);
+
+                const escala = novaDist / MAXEditor.interacaoDoisDedos.distanciaInicial;
+                const rotacao = novoAng - MAXEditor.interacaoDoisDedos.anguloInicial;
+
+                aplicarTransformacaoNoObjeto(MAXEditor.interacaoDoisDedos.id, escala, rotacao);
+                e.preventDefault(); // Bloqueia rolagem nativa
+                return;
+            }
+
+            // 🧭 Caso normal: mover e dar zoom no canvas
             const dx = t1.clientX - t2.clientX;
             const dy = t1.clientY - t2.clientY;
             const novaDistancia = Math.hypot(dx, dy);
@@ -534,7 +588,7 @@ function iniciarSistemaDeZoom() {
 
             const dxMeio = novoMeio.x - ultimoXCanvas;
             const dyMeio = novoMeio.y - ultimoYCanvas;
-            
+
             MAXEditor.panX += dxMeio;
             MAXEditor.panY += dyMeio;
 
@@ -545,6 +599,7 @@ function iniciarSistemaDeZoom() {
             e.preventDefault();
         }
     }, { passive: false });
+
 
     // Fim do toque (touchend) - Reseta a variável de distância inicial do touch
     wrapper.addEventListener("touchend", () => {
@@ -1456,7 +1511,7 @@ return obj;
 
 
 // ============================================
-// ACABA FUNÇÃO CRIAR CAMADA BASE
+// FIM FUNÇÃO CRIAR CAMADA BASE
 // ============================================
 
 
