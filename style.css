@@ -4,10 +4,14 @@
 }
 
 
-#tela-inicial, #tela-editor, #canvas-wrapper, body {
-  height: var(--altura-visivel);
-  max-height: var(--altura-visivel);
+#tela-inicial,
+#tela-editor,
+#canvas-wrapper,
+body {
+  height: calc(var(--vh, 1vh) * 100);
+  max-height: calc(var(--vh, 1vh) * 100);
 }
+
 
 
 
