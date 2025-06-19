@@ -1,16 +1,21 @@
 document.addEventListener("DOMContentLoaded", () => {
   
-  
+  document.documentElement.requestFullscreen();
+
   
 // Corrige a altura visível da tela no celular (descontando a barra de URL)
-function ajustarAlturaReal() {
-  const alturaVisivel = window.innerHeight;
-  document.documentElement.style.setProperty('--altura-visivel', `${alturaVisivel}px`);
+function atualizarAlturaReal() {
+  const vhReal = window.innerHeight * 0.01;
+  document.documentElement.style.setProperty('--vh', `${vhReal}px`);
 }
 
-window.addEventListener('resize', ajustarAlturaReal);
-window.addEventListener('orientationchange', ajustarAlturaReal);
-document.addEventListener('DOMContentLoaded', ajustarAlturaReal);
+// Chamada imediata ao carregar a página
+document.addEventListener('DOMContentLoaded', () => {
+  atualizarAlturaReal(); // ✅ Aplica ao carregar
+});
+
+// Atualiza também se o usuário gira o celular ou muda a tela
+window.addEventListener('resize', atualizarAlturaReal);
 
   
   
@@ -282,44 +287,40 @@ setTimeout(() => {
 // =======================================================================
 
 
-
 function iniciarSistemaDeZoom() {
     const wrapper = document.getElementById("canvas-wrapper");
     const transformado = document.getElementById("canvas-transformado");
-    const canvas = document.getElementById("canvas-container"); // Já é 'canvasContainer'
-
+    const canvas = document.getElementById("canvas-container");
     if (!wrapper || !canvas || !transformado) return;
 
-    // Variáveis de controle LOCAL para a função iniciarSistemaDeZoom
-    // Elas controlam o estado de arrasto e últimas posições do mouse/touch para o PAN do CANVAS.
-    let isArrastandoCanvas = false; 
-    let ultimoXCanvas = 0; 
-    let ultimoYCanvas = 0; 
-
-    // Variáveis para o zoom de pinça (gesto de dois dedos no touch)
-    let distanciaInicialTouch = null; 
-    let escalaInicialTouch = 1; 
-
+    // 🔧 Estado para zoom/pan do canvas
+    let isArrastandoCanvas = false;
+    let ultimoXCanvas = 0;
+    let ultimoYCanvas = 0;
+    let distanciaInicialTouch = null;
+    let escalaInicialTouch = 1;
     const ZOOM_MIN = 0.1;
     const ZOOM_MAX = 10;
-	
-	
-	    // =============================================
-    // 📌 Função auxiliar para aplicar transformação
-    // Aplica escala e rotação ao objeto pelo ID
-    // =============================================
+
+    // 🔧 Estado para edição de objeto com dois dedos
+    let objetoMovendoTouch = null;
+    let offsetTouchX = 0;
+    let offsetTouchY = 0;
+
+    // ===================================================
+    // 🔧 Utilitário: transforma escala e rotação em CSS
+    // ===================================================
     function aplicarTransformacaoNoObjeto(id, escala, rotacaoEmRad) {
         const objeto = document.querySelector(`.objeto-edicao[data-id="${id}"]`);
         if (!objeto) return;
 
-        const graus = rotacaoEmRad * (180 / Math.PI); // Converte para graus
-        objeto.style.transform = `scale(${escala}) rotate(${graus}deg)`; // Aplica as transformações via CSS
+        const graus = rotacaoEmRad * (180 / Math.PI);
+        objeto.style.transform = `scale(${escala}) rotate(${graus}deg)`;
     }
 
-    // =============================================
-    // 📌 Função para verificar se os dois dedos 
-    // estão tocando o objeto atualmente selecionado
-    // =============================================
+    // ===================================================
+    // 🔍 Verifica se os dois dedos estão sobre o mesmo objeto selecionado
+    // ===================================================
     function tocandoObjetoSelecionadoComDoisDedos(t1, t2) {
         const objSelecionado = MAXEditor.camadaSelecionada;
         if (!objSelecionado) return false;
@@ -327,16 +328,15 @@ function iniciarSistemaDeZoom() {
         const alvo1 = document.elementFromPoint(t1.clientX, t1.clientY);
         const alvo2 = document.elementFromPoint(t2.clientX, t2.clientY);
 
-        // Ambos os dedos devem estar tocando o mesmo objeto selecionado
         return [alvo1, alvo2].every(el =>
             el?.classList.contains("objeto-edicao") &&
             el.dataset.id === objSelecionado
         );
     }
 
-
-    // Aplica a transformação visual (translate e scale) ao elemento 'canvas-transformado'
-    // Usa as propriedades de MAXEditor (MAXEditor.panX, MAXEditor.panY, MAXEditor.zoom)
+    // ===================================================
+    // 🌀 Aplica transformações visuais ao canvas-transformado
+    // ===================================================
     function atualizarTransformacao() {
         transformado.style.transform = `translate(calc(-50% + ${MAXEditor.panX}px), calc(-50% + ${MAXEditor.panY}px)) scale(${MAXEditor.zoom})`;
         transformado.style.transformOrigin = "center center";
@@ -344,17 +344,15 @@ function iniciarSistemaDeZoom() {
         verificarSeCanvasSumiu();
     }
 
-    // Centraliza o canvas na tela e ajusta o zoom para que ele caiba completamente
+    // 🔄 Centraliza canvas com base no tamanho do wrapper
     function centralizarCanvasComZoom() {
         const larguraWrapper = wrapper.clientWidth;
         const alturaWrapper = wrapper.clientHeight;
         const larguraCanvas = canvas.offsetWidth;
         const alturaCanvas = canvas.offsetHeight;
+        const margem = 0.9;
 
-        const margem = 0.9; // Uma pequena margem para o canvas não "grudar" nas bordas
-        const escalaIdeal = Math.min(larguraWrapper / larguraCanvas, alturaWrapper / canvas.offsetHeight) * margem;
-
-        // Atualiza as propriedades de zoom e pan no objeto global MAXEditor
+        const escalaIdeal = Math.min(larguraWrapper / larguraCanvas, alturaWrapper / alturaCanvas) * margem;
         MAXEditor.zoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, escalaIdeal));
         MAXEditor.panX = 0;
         MAXEditor.panY = 0;
@@ -362,7 +360,7 @@ function iniciarSistemaDeZoom() {
         atualizarTransformacao();
     }
 
-    // Reseta o zoom e a posição do canvas para o estado padrão (zoom 1x, centralizado)
+    // ♻️ Recentraliza manualmente
     function recentralizarCanvas() {
         MAXEditor.zoom = 1;
         MAXEditor.panX = 0;
@@ -370,170 +368,88 @@ function iniciarSistemaDeZoom() {
         atualizarTransformacao();
     }
 
-    let ultimaCentralizacao = 0; // Controla o tempo da última centralização automática
-
-    // Verifica se o canvas está muito fora da área visível e o recentraliza automaticamente
+    // 🧠 Detecta se canvas "sumiu" da tela e recentraliza
+    let ultimaCentralizacao = 0;
     function verificarSeCanvasSumiu() {
         if (!canvas || canvas.offsetWidth === 0 || canvas.offsetHeight === 0) return;
 
         const agora = Date.now();
-        const intervaloMinimo = 500; // Intervalo mínimo de 500ms entre centralizações
+        if (agora - ultimaCentralizacao < 500) return;
 
-        if (agora - ultimaCentralizacao < intervaloMinimo) return;
-
-        const margem = 60; // Margem em pixels para considerar o canvas "fora da tela"
+        const margem = 60;
         const wrapperBox = wrapper.getBoundingClientRect();
         const canvasBox = canvas.getBoundingClientRect();
 
-        const foraHorizontal =
-            canvasBox.right < wrapperBox.left + margem ||
-            canvasBox.left > wrapperBox.right - margem;
-
-        const foraVertical =
-            canvasBox.bottom < wrapperBox.top + margem ||
-            canvasBox.top > wrapperBox.bottom - margem;
+        const foraHorizontal = canvasBox.right < wrapperBox.left + margem || canvasBox.left > wrapperBox.right - margem;
+        const foraVertical = canvasBox.bottom < wrapperBox.top + margem || canvasBox.top > wrapperBox.bottom - margem;
 
         if (foraHorizontal || foraVertical) {
-            console.warn("⚠️ Canvas fora da área visível. Recentralizando...");
+            console.warn("⚠️ Canvas fora da tela. Recentralizando...");
             ultimaCentralizacao = agora;
             centralizarCanvasComZoom();
         }
     }
 
-    // Expõe globalmente as funções para que possam ser chamadas de outras partes do código
+    // 🌐 Expõe funções para uso externo
     window.centralizarCanvasComZoom = centralizarCanvasComZoom;
     window.recentralizarCanvas = recentralizarCanvas;
 
-    // ======================================
-    // EVENTOS DE MOUSE / SCROLL (PC)
-    // ======================================
-
-    // Zoom com a roda do mouse (scroll)
+    // ===================================================
+    // 🎯 ZOOM COM SCROLL DO MOUSE (PC)
+    // ===================================================
     wrapper.addEventListener("wheel", (e) => {
-        if (e.ctrlKey || e.metaKey) return; // Ignora se Ctrl/Cmd está pressionado (para zoom nativo do navegador)
-        e.preventDefault(); // Previne o scroll padrão da página
+        if (e.ctrlKey || e.metaKey) return;
+        e.preventDefault();
 
-        const delta = e.deltaY > 0 ? -0.1 : 0.1; // Determina a direção do zoom
-        MAXEditor.zoom += delta; // Ajusta o zoom do MAXEditor
-        MAXEditor.zoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, MAXEditor.zoom)); // Limita o zoom entre min e max
+        const delta = e.deltaY > 0 ? -0.1 : 0.1;
+        MAXEditor.zoom += delta;
+        MAXEditor.zoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, MAXEditor.zoom));
         atualizarTransformacao();
     }, { passive: false });
 
-    // =======================================================================
-    // 🖱️ SELEÇÃO DE OBJETOS NO CANVAS VIA CLIQUE (DENTRO DE iniciarSistemaDeZoom)
-    // Este listener AGORA TEM PRIORIDADE sobre o arrasto do canvas.
-    // =======================================================================
-    canvas.addEventListener("mousedown", (e) => { // 'canvas' é 'canvasContainer'
-        const clickedObject = e.target.closest(".objeto-edicao");
-        
-        // Se clicou em um objeto
-        if (clickedObject) {
-            const objectId = clickedObject.dataset.id;
-            const correspondingLayer = document.querySelector(`.item-camada[data-id="${objectId}"]`);
-            
-            // Se a camada correspondente já está selecionada E o objeto não está bloqueado,
-            // não precisamos fazer nada, apenas garantir que o mousedown não suba
-            if (correspondingLayer && correspondingLayer.classList.contains("ativa") && correspondingLayer.dataset.bloqueado !== "true") {
-                // e.stopPropagation(); // O ObjetoInteracaoManager.onPointerDown já faz isso
-                return; 
-            }
+    // ===================================================
+    // 🖱️ PAN COM MOUSE
+    // ===================================================
+    wrapper.addEventListener("mousedown", (e) => {
+        const objSelecionado = MAXEditor.camadaSelecionada;
+        const alvo = e.target.closest(".objeto-edicao");
 
-            // Se o objeto clicado não é o atualmente selecionado ou está bloqueado ou não era selecionado
-            if (correspondingLayer) {
-                // Simula um clique na camada correspondente para ativar a lógica de seleção.
-                // Isso irá: remover seleção anterior, adicionar 'ativa', mudar painel, ativar manager, etc.
-                correspondingLayer.click(); 
-            }
-        } else {
-            // Se clicou em uma área vazia do canvas (NÃO em um objeto)
-            // E existe uma camada atualmente selecionada, então desselecione.
-            if (MAXEditor.camadaSelecionada) {
-                limparSelecaoDeCamadas();
-                mostrarNotificacaoAviso("Seleção de objeto removida.");
-            }
-        }
+        if (alvo && alvo.dataset.id === objSelecionado) return;
+
+        isArrastandoCanvas = true;
+        ultimoXCanvas = e.clientX;
+        ultimoYCanvas = e.clientY;
+        transformado.style.transition = "none";
     });
 
-
-    // Início do arrasto do canvas com o mouse (mousedown)
-    // Este listener só é acionado SE o listener do 'canvas' (acima) NÃO interceptar o evento.
-wrapper.addEventListener("mousedown", (e) => {
-    const objSelecionado = MAXEditor.camadaSelecionada;
-
-    // Verifica se o clique foi em um objeto do canvas
-    const alvo = e.target.closest(".objeto-edicao");
-
-    if (alvo && alvo.dataset.id === objSelecionado) {
-        // Clicou sobre o objeto que está selecionado → não permite movimentar o canvas
-        return;
-    }
-
-    // Verifica se clicou dentro da margem de segurança do contorno
-    const contorno = document.getElementById("contorno-selecao");
-    let isWithinSafeMargin = false;
-    if (objSelecionado && contorno && !contorno.classList.contains("oculto")) {
-        const contornoRect = contorno.getBoundingClientRect();
-        const margemSeguranca = 30;
-
-        const dentro =
-            e.clientX >= contornoRect.left - margemSeguranca &&
-            e.clientX <= contornoRect.right + margemSeguranca &&
-            e.clientY >= contornoRect.top - margemSeguranca &&
-            e.clientY <= contornoRect.bottom + margemSeguranca;
-
-        if (dentro) {
-            isWithinSafeMargin = true;
-        }
-    }
-
-    if (isWithinSafeMargin) return;
-
-    // Se chegou até aqui, é um clique válido para arrastar o canvas
-    isArrastandoCanvas = true;
-    ultimoXCanvas = e.clientX;
-    ultimoYCanvas = e.clientY;
-    transformado.style.transition = "none";
-});
-
-
-    // Movimento do mouse (mousemove) para arrastar o canvas
     document.addEventListener("mousemove", (e) => {
-        // Se uma interação de objeto (arrastar/redimensionar/rotacionar) estiver ativa,
-        // o arrasto do canvas é desativado imediatamente para evitar conflitos.
         if (MAXEditor.interacaoObjetoAtiva) {
-            isArrastandoCanvas = false; // Garante que a flag de arrasto do canvas seja desativada
+            isArrastandoCanvas = false;
             return;
         }
+        if (!isArrastandoCanvas) return;
 
-        if (!isArrastandoCanvas) return; // Se a flag de arrasto do canvas não estiver ativa, não faça nada
-
-        const dx = e.clientX - ultimoXCanvas; // Calcula a mudança na posição X do mouse
-        const dy = e.clientY - ultimoYCanvas; // Calcula a mudança na posição Y do mouse
-        
-        MAXEditor.panX += dx; // Atualiza as propriedades de pan (posição) do MAXEditor
+        const dx = e.clientX - ultimoXCanvas;
+        const dy = e.clientY - ultimoYCanvas;
+        MAXEditor.panX += dx;
         MAXEditor.panY += dy;
-        
-        ultimoXCanvas = e.clientX; // Atualiza a última posição do mouse para o próximo cálculo
+        ultimoXCanvas = e.clientX;
         ultimoYCanvas = e.clientY;
 
-        atualizarTransformacao(); // Aplica a nova transformação visual ao canvas
+        atualizarTransformacao();
     });
 
-    // Fim do arrasto do canvas (mouseup)
     document.addEventListener("mouseup", () => {
-        isArrastandoCanvas = false; // Desativa a flag de arrasto do canvas
+        isArrastandoCanvas = false;
     });
 
-    // ======================================
-    // EVENTOS DE TOQUE (MOBILE)
-    // ======================================
-
-    // Início do toque (touchstart) - Usado para identificar zoom de pinça ou ignorar toques de um dedo.
+    // ===================================================
+    // 📱 TOQUE: GESTOS DE ESCALA, ROTAÇÃO E MOVIMENTO
+    // ===================================================
     wrapper.addEventListener("touchstart", (e) => {
         if (e.touches.length === 2) {
             const [t1, t2] = e.touches;
 
-            // ✅ Se os dois dedos estão tocando o objeto selecionado: entra em modo de transformação
             if (tocandoObjetoSelecionadoComDoisDedos(t1, t2)) {
                 MAXEditor.interacaoDoisDedos = {
                     modo: "objeto",
@@ -543,8 +459,12 @@ wrapper.addEventListener("mousedown", (e) => {
                     escalaInicial: 1,
                     rotacaoInicial: 0
                 };
+
+                // Desativa zoom da tela
+                distanciaInicialTouch = null;
+                escalaInicialTouch = null;
             } else {
-                // 🤏 Caso contrário, é gesto de pan + zoom do canvas
+                // Gesto comum de zoom/pan
                 distanciaInicialTouch = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
                 escalaInicialTouch = MAXEditor.zoom;
                 ultimoXCanvas = (t1.clientX + t2.clientX) / 2;
@@ -552,28 +472,88 @@ wrapper.addEventListener("mousedown", (e) => {
                 MAXEditor.interacaoDoisDedos = null;
             }
         }
+        else if (e.touches.length === 1 && MAXEditor.camadaSelecionada) {
+            // 🧲 Mover objeto com 1 dedo em qualquer lugar da tela
+            const objeto = document.querySelector(`.objeto-edicao[data-id="${MAXEditor.camadaSelecionada}"]`);
+            if (objeto) {
+                const t1 = e.touches[0];
+const canvasBox = canvas.getBoundingClientRect();
+
+objetoMovendoTouch = objeto;
+
+// Pega a posição atual do objeto (estilo left/top)
+const leftAtual = parseFloat(objeto.style.left) || 0;
+const topAtual = parseFloat(objeto.style.top) || 0;
+
+// Calcula o ponto inicial do dedo relativo ao canvas
+const posDedoX = t1.clientX - canvasBox.left;
+const posDedoY = t1.clientY - canvasBox.top;
+
+// Armazena o delta entre dedo e posição real do objeto
+offsetTouchX = posDedoX - leftAtual;
+offsetTouchY = posDedoY - topAtual;
+
+            }
+        }
     }, { passive: false });
 
-
-    // Movimento do toque (touchmove) - Para zoom de pinça e pan com dois dedos
     wrapper.addEventListener("touchmove", (e) => {
-        if (e.touches.length === 2) {
+        // 👉 Mover objeto com 1 dedo
+// 🟢 Se estiver arrastando o objeto com um dedo
+if (e.touches.length === 1 && objetoMovendoTouch) {
+    const t1 = e.touches[0];
+    const canvasBox = canvas.getBoundingClientRect();
+
+    // Posição atual do dedo relativa ao canvas
+    const posDedoX = t1.clientX - canvasBox.left;
+    const posDedoY = t1.clientY - canvasBox.top;
+
+    // Nova posição do objeto com base no dedo - deslocamento
+    const x = posDedoX - offsetTouchX;
+    const y = posDedoY - offsetTouchY;
+
+    // Aplica nova posição ao objeto
+    objetoMovendoTouch.style.left = `${x}px`;
+    objetoMovendoTouch.style.top = `${y}px`;
+
+    // 🔁 Atualiza posição do contorno para manter alinhamento com o objeto
+    const contorno = document.getElementById("contorno-selecao");
+    if (contorno && !contorno.classList.contains("oculto")) {
+        const objWidth = objetoMovendoTouch.offsetWidth;
+        const objHeight = objetoMovendoTouch.offsetHeight;
+        const contWidth = contorno.offsetWidth;
+        const contHeight = contorno.offsetHeight;
+
+        // Calcula nova posição do contorno centralizado
+        const contX = x - (contWidth - objWidth) / 2;
+        const contY = y - (contHeight - objHeight) / 2;
+
+        contorno.style.left = `${contX}px`;
+        contorno.style.top = `${contY}px`;
+    }
+
+    e.preventDefault(); // Impede scroll enquanto move objeto
+}
+
+
+        // ✌️ Escalar/rotacionar objeto com dois dedos
+        if (e.touches.length === 2 && MAXEditor.interacaoDoisDedos?.modo === "objeto") {
+            const [t1, t2] = e.touches;
+            const novaDist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+            const novoAng = Math.atan2(t2.clientY - t1.clientY, t2.clientX - t1.clientX);
+
+            const escala = novaDist / MAXEditor.interacaoDoisDedos.distanciaInicial;
+            const rotacao = novoAng - MAXEditor.interacaoDoisDedos.anguloInicial;
+
+            aplicarTransformacaoNoObjeto(MAXEditor.interacaoDoisDedos.id, escala, rotacao);
+            e.preventDefault();
+            return;
+        }
+
+        // 🧭 Zoom + Pan do canvas com dois dedos
+        if (e.touches.length === 2 && distanciaInicialTouch !== null) {
             const [t1, t2] = e.touches;
 
-            // 🎯 Se estiver em modo de transformação de objeto (dois dedos sobre ele)
-            if (MAXEditor.interacaoDoisDedos?.modo === "objeto") {
-                const novaDist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
-                const novoAng = Math.atan2(t2.clientY - t1.clientY, t2.clientX - t1.clientX);
-
-                const escala = novaDist / MAXEditor.interacaoDoisDedos.distanciaInicial;
-                const rotacao = novoAng - MAXEditor.interacaoDoisDedos.anguloInicial;
-
-                aplicarTransformacaoNoObjeto(MAXEditor.interacaoDoisDedos.id, escala, rotacao);
-                e.preventDefault(); // Bloqueia rolagem nativa
-                return;
-            }
-
-            // 🧭 Caso normal: mover e dar zoom no canvas
             const dx = t1.clientX - t2.clientX;
             const dy = t1.clientY - t2.clientY;
             const novaDistancia = Math.hypot(dx, dy);
@@ -600,14 +580,16 @@ wrapper.addEventListener("mousedown", (e) => {
         }
     }, { passive: false });
 
-
-    // Fim do toque (touchend) - Reseta a variável de distância inicial do touch
+    // ✅ Reseta variáveis no fim do toque
     wrapper.addEventListener("touchend", () => {
         distanciaInicialTouch = null;
+        objetoMovendoTouch = null;
     });
 
-    centralizarCanvasComZoom(); // Inicia o canvas centralizado e com zoom adequado
+    // 🚀 Inicia com canvas centralizado
+    centralizarCanvasComZoom();
 }
+
 
 
 
@@ -2152,7 +2134,7 @@ const ObjetoInteracaoManager = {
     }
 };
 
-
+const wrapper = document.getElementById("canvas-wrapper");
 
 // =======================================================================
 // 🖱️ SELEÇÃO DE OBJETOS NO CANVAS VIA CLIQUE
@@ -2161,6 +2143,7 @@ const ObjetoInteracaoManager = {
 canvasContainer.addEventListener("mousedown", (e) => {
     // Tenta encontrar o objeto de edição mais próximo do elemento clicado
     const clickedObject = e.target.closest(".objeto-edicao");
+	
     
     // Se clicou em um objeto
     if (clickedObject) {
@@ -2187,10 +2170,23 @@ canvasContainer.addEventListener("mousedown", (e) => {
         if (MAXEditor.camadaSelecionada) {
             limparSelecaoDeCamadas();
             
-            // console.log("Clicou no canvas vazio. Desselecionando."); // Descomente para depuração
+             console.log("Clicou no canvas vazio. Desselecionando."); // Descomente para depuração
         }
     }
 });
+
+// ✅ Permite desselecionar clicando fora do canvas real (ex: fundo/cinza ao redor do canvas)
+wrapper.addEventListener("mousedown", (e) => {
+    // Ignora se clicou em objeto ou no contorno de seleção
+    const clicouEmObjeto = e.target.closest(".objeto-edicao");
+    const clicouNoContorno = e.target.closest("#contorno-selecao");
+
+    if (!clicouEmObjeto && !clicouNoContorno && MAXEditor.camadaSelecionada) {
+        limparSelecaoDeCamadas();
+        console.log("🔹 Desselecionado ao clicar no wrapper fora de qualquer objeto.");
+    }
+});
+
 
 
 // ===================================
