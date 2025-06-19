@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
   
-  document.documentElement.requestFullscreen();
+  
 
   
 // Corrige a altura visível da tela no celular (descontando a barra de URL)
