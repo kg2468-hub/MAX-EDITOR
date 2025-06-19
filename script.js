@@ -1,6 +1,16 @@
 document.addEventListener("DOMContentLoaded", () => {
   
-  
+  function tentarFullscreen() {
+  const elem = document.documentElement;
+
+  if (elem.requestFullscreen) {
+    elem.requestFullscreen().catch((err) => {
+      console.warn("Falha ao entrar em tela cheia:", err);
+    });
+  } else {
+    console.log("Fullscreen não suportado neste navegador.");
+  }
+}
 
   
 // Corrige a altura visível da tela no celular (descontando a barra de URL)
@@ -154,6 +164,10 @@ botaoCriar.addEventListener("click", () => {
   document.getElementById("nome").value = "Meu Projeto";
   document.getElementById("largura").value = 1080;
   document.getElementById("altura").value = 1080;
+
+
+tentarFullscreen();	
+
 
   // 👁️ Mostra o modal
   modalCriar.classList.remove("oculto");
